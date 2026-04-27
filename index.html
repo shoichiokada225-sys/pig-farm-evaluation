@@ -1,0 +1,694 @@
+﻿<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HSS 評価システム</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --pri:#2e7d6f;--pri-l:#e0f2ef;--pri-d:#1b5e50;
+  --bg:#f5f7f6;--card:#fff;--txt:#1a1a1a;--sub:#666;--bdr:#e0e0e0;
+  --s5:#1b8a2e;--s4:#4caf50;--s3:#f9a825;--s2:#ef6c00;--s1:#d32f2f;
+  --r:12px;--sh:0 2px 8px rgba(0,0,0,.08);
+}
+html{font-size:16px;-webkit-text-size-adjust:100%}
+body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif;background:var(--bg);color:var(--txt);line-height:1.6;min-height:100vh;padding-bottom:80px}
+
+/* ヘッダー */
+.hdr{background:var(--pri);color:#fff;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 6px rgba(0,0,0,.15)}
+.hdr h1{font-size:1rem;font-weight:700;flex:1;text-align:center}
+.lsw{display:flex;gap:2px;flex-shrink:0}
+.lsw button{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.7);padding:4px 8px;border-radius:6px;font-size:.7rem;font-weight:700;cursor:pointer}
+.lsw button.on{background:#fff;color:var(--pri);border-color:#fff}
+
+/* 編集バナー */
+.ebar{display:none;background:#fff3e0;border-bottom:2px solid var(--s2);padding:10px 16px;text-align:center;font-size:.85rem;font-weight:600;color:var(--s2);align-items:center;justify-content:center;gap:8px}
+.ebar.show{display:flex}
+.ebar button{background:none;border:1px solid var(--s2);color:var(--s2);border-radius:6px;padding:2px 10px;font-size:.8rem;cursor:pointer}
+
+/* タブ */
+.tabs{position:fixed;bottom:0;left:0;right:0;background:#fff;display:flex;border-top:1px solid var(--bdr);z-index:100;box-shadow:0 -2px 6px rgba(0,0,0,.08)}
+.tabs button{flex:1;padding:8px 2px;border:none;background:0;font-size:.7rem;color:var(--sub);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px}
+.tabs button svg{width:20px;height:20px;fill:currentColor}
+.tabs button.on{color:var(--pri);font-weight:700}
+
+/* ページ */
+.pg{display:none;padding:16px;max-width:640px;margin:0 auto}
+.pg.on{display:block}
+
+/* カード共通 */
+.cd{background:var(--card);border-radius:var(--r);padding:16px;margin-bottom:12px;box-shadow:var(--sh)}
+
+/* メタ入力 */
+.meta label{display:block;font-size:.85rem;font-weight:600;color:var(--sub);margin-bottom:4px}
+.meta input{width:100%;padding:10px 12px;border:1px solid var(--bdr);border-radius:8px;font-size:1rem;margin-bottom:12px;outline:0}
+.meta input:focus{border-color:var(--pri)}
+.meta input:last-child{margin-bottom:0}
+
+/* セクション見出し */
+.stit{font-size:.9rem;font-weight:700;color:var(--pri-d);padding:8px 0;margin-top:8px;border-bottom:2px solid var(--pri);margin-bottom:12px}
+
+/* 評価カード */
+.ec{border-left:4px solid var(--bdr);transition:border-color .3s}
+.ec.scored{border-left-color:var(--pri)}
+.ec .en{font-size:.75rem;font-weight:700;color:var(--pri);letter-spacing:.05em}
+.ec .enm{font-size:1rem;font-weight:700;margin:4px 0}
+.ec .ed{font-size:.8rem;color:var(--sub);margin-bottom:12px;line-height:1.5}
+.sr{display:flex;gap:6px;margin-bottom:10px}
+.sb{flex:1;min-height:48px;border:2px solid var(--bdr);border-radius:10px;background:#fff;font-size:1.1rem;font-weight:700;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;transition:all .2s}
+.sb .sl{font-size:.55rem;font-weight:400;color:var(--sub);line-height:1}
+.sb:active{transform:scale(.95)}
+.sb.sel{color:#fff;border-color:transparent}
+.sb.sel .sl{color:rgba(255,255,255,.85)}
+.sb[data-s="5"].sel{background:var(--s5)}
+.sb[data-s="4"].sel{background:var(--s4)}
+.sb[data-s="3"].sel{background:var(--s3)}
+.sb[data-s="2"].sel{background:var(--s2)}
+.sb[data-s="1"].sel{background:var(--s1)}
+.ec textarea,.oata{width:100%;padding:10px 12px;border:1px solid var(--bdr);border-radius:8px;font-size:.9rem;font-family:inherit;resize:vertical;min-height:60px;outline:0}
+.ec textarea:focus,.oata:focus{border-color:var(--pri)}
+.clbl{font-size:.8rem;color:var(--sub);margin-bottom:4px}
+
+/* 全体所感 */
+.oasec h3{font-size:.95rem;margin-bottom:8px}
+
+/* ボタン */
+.bg{display:flex;gap:10px;margin:16px 0}
+.b{flex:1;padding:14px;border:none;border-radius:10px;font-size:1rem;font-weight:700;cursor:pointer;transition:all .2s}
+.b:active{transform:scale(.97)}
+.b1{background:var(--pri);color:#fff}.b1:hover{background:var(--pri-d)}
+.b2{background:#fff;color:var(--s1);border:2px solid var(--s1)}
+.b3{background:var(--pri-l);color:var(--pri-d)}
+.b4{background:#fff3e0;color:var(--s2);border:2px solid var(--s2)}
+
+/* トースト */
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);background:#333;color:#fff;padding:12px 24px;border-radius:24px;font-size:.9rem;font-weight:600;opacity:0;transition:all .3s;z-index:200;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* 履歴 */
+.hctrl{display:flex;gap:8px;margin-bottom:16px}
+.hctrl select{flex:1;padding:10px 12px;border:1px solid var(--bdr);border-radius:8px;font-size:.9rem;background:#fff;outline:0}
+.hlist{display:flex;flex-direction:column;gap:8px}
+.hi{background:var(--card);border-radius:var(--r);padding:14px 16px;box-shadow:var(--sh);cursor:pointer;display:flex;justify-content:space-between;align-items:center}
+.hi:active{background:var(--pri-l)}
+.hi .hii{flex:1}.hi .hid{font-size:.8rem;color:var(--sub)}.hi .hin{font-weight:700;font-size:.95rem}
+.hi .hia{font-size:1.3rem;font-weight:700;color:var(--pri);min-width:50px;text-align:right}
+
+/* モーダル */
+.mo{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:300;overflow-y:auto;padding:24px 12px}
+.mo.show{display:block}
+.mc{background:#fff;border-radius:16px;max-width:560px;margin:0 auto;padding:20px 16px}
+.mh{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--bdr)}
+.mh h3{font-size:1rem}
+.mx{background:0;border:0;font-size:1.5rem;cursor:pointer;padding:4px 8px;color:var(--sub)}
+.di{padding:10px 0;border-bottom:1px solid #f0f0f0}.di:last-of-type{border-bottom:none}
+.dih{display:flex;justify-content:space-between;align-items:center}
+.din{font-weight:600;font-size:.9rem}
+.dis{font-weight:700;font-size:1rem;padding:2px 10px;border-radius:6px;color:#fff}
+.dic{font-size:.85rem;color:var(--sub);margin-top:4px}
+.dov{margin-top:12px;padding:12px;background:var(--pri-l);border-radius:8px;font-size:.9rem}
+.ma{display:flex;gap:8px;margin-top:20px;padding-top:16px;border-top:1px solid var(--bdr)}
+.sb5{background:var(--s5)}.sb4{background:var(--s4)}.sb3{background:var(--s3)}.sb2{background:var(--s2)}.sb1{background:var(--s1)}
+
+/* グラフ */
+.chc{background:var(--card);border-radius:var(--r);padding:16px;margin-bottom:16px;box-shadow:var(--sh)}
+.chc select{width:100%;padding:10px 12px;border:1px solid var(--bdr);border-radius:8px;font-size:.9rem;background:#fff;outline:0}
+.chb{background:var(--card);border-radius:var(--r);padding:16px;margin-bottom:16px;box-shadow:var(--sh)}
+.chb h3{font-size:.9rem;margin-bottom:12px;color:var(--sub)}
+.chb canvas{width:100%!important;max-height:300px}
+.nd{text-align:center;color:var(--sub);padding:40px 16px;font-size:.95rem}
+
+/* 設定画面 */
+.cfg-sec{margin-bottom:24px}
+.cfg-sec-hdr{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.cfg-sec-hdr input{flex:1;font-size:.95rem;font-weight:700;padding:8px 10px;border:1px solid var(--bdr);border-radius:8px;outline:0;color:var(--pri-d)}
+.cfg-sec-hdr input:focus{border-color:var(--pri)}
+.cfg-item{background:var(--card);border-radius:var(--r);padding:12px;margin-bottom:8px;box-shadow:var(--sh);border-left:3px solid var(--pri)}
+.cfg-item .ci-row{display:flex;gap:6px;align-items:center;margin-bottom:6px}
+.cfg-item input{flex:1;padding:8px 10px;border:1px solid var(--bdr);border-radius:6px;font-size:.9rem;outline:0}
+.cfg-item input:focus{border-color:var(--pri)}
+.cfg-item .ci-desc{font-size:.85rem;color:var(--sub)}
+.cfg-item textarea{width:100%;padding:8px 10px;border:1px solid var(--bdr);border-radius:6px;font-size:.85rem;font-family:inherit;resize:none;min-height:40px;outline:0;color:var(--sub)}
+.cfg-item textarea:focus{border-color:var(--pri)}
+.ci-btns{display:flex;gap:4px;flex-shrink:0}
+.ci-btns button{width:36px;height:36px;border:1px solid var(--bdr);border-radius:8px;background:#fff;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;color:var(--sub);transition:all .15s}
+.ci-btns button:hover{background:var(--pri-l);color:var(--pri-d);border-color:var(--pri)}
+.ci-btns button.del:hover{background:#fef0f0;color:var(--s1);border-color:var(--s1)}
+.cfg-add{display:flex;gap:8px;margin-top:8px}
+.cfg-add button{flex:1;padding:10px;border:2px dashed var(--bdr);border-radius:var(--r);background:0;font-size:.85rem;font-weight:600;color:var(--sub);cursor:pointer}
+.cfg-add button:hover{border-color:var(--pri);color:var(--pri);background:var(--pri-l)}
+
+/* 警告 */
+.ec.warn{border-left-color:var(--s1);animation:shake .4s}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+@media(min-width:640px){.pg{padding:24px}.sb{min-height:52px;font-size:1.2rem}}
+</style>
+</head>
+<body>
+
+<header class="hdr">
+  <div style="width:100px"></div>
+  <h1 data-t="appTitle">HSS 評価システム</h1>
+  <div class="lsw">
+    <button class="on" onclick="setLang('ja')">JP</button>
+    <button onclick="setLang('en')">EN</button>
+    <button onclick="setLang('vi')">VI</button>
+    <button onclick="setLang('id')">ID</button>
+  </div>
+</header>
+
+<div class="ebar" id="editBar">
+  <span data-t="editingBanner">編集中</span>
+  <button onclick="cancelEdit()" data-t="cancelEdit">取消</button>
+</div>
+
+<!-- 入力 -->
+<div id="pgIn" class="pg on">
+  <div class="cd meta">
+    <label data-t="labelDate">評価日</label>
+    <input type="date" id="fDate">
+    <label data-t="labelEvaluator">評価者名</label>
+    <input type="text" id="fEv" data-ph="phEv" placeholder="例：山田太郎">
+    <label data-t="labelEvaluatee">被評価者名</label>
+    <input type="text" id="fEe" data-ph="phEe" placeholder="例：佐藤花子">
+  </div>
+  <div id="cards"></div>
+  <div class="cd oasec">
+    <h3 data-t="overall">全体所感</h3>
+    <textarea id="fOv" class="oata" rows="4" data-ph="phOv" placeholder="全体的な評価や今後の期待などを記入..."></textarea>
+  </div>
+  <div class="bg">
+    <button class="b b1" id="btnSave" onclick="doSave()" data-t="btnSave">保存</button>
+    <button class="b b2" onclick="doReset()" data-t="btnReset">リセット</button>
+  </div>
+</div>
+
+<!-- 履歴 -->
+<div id="pgHi" class="pg">
+  <div class="hctrl">
+    <select id="hFil" onchange="drawHist()"><option value="" data-t="filterAll">全員</option></select>
+    <button class="b b3" onclick="doCSV()" style="flex:0 0 auto;padding:10px 16px;font-size:.85rem" data-t="btnCSV">CSV出力</button>
+  </div>
+  <div id="hList" class="hlist"></div>
+</div>
+
+<!-- グラフ -->
+<div id="pgCh" class="pg">
+  <div class="chc">
+    <label style="font-size:.85rem;font-weight:600;color:var(--sub);display:block;margin-bottom:6px" data-t="selEe">被評価者を選択</label>
+    <select id="chSel" onchange="drawCharts()"><option value="" data-t="selPh">-- 選択してください --</option></select>
+  </div>
+  <div id="chArea">
+    <div class="chb"><h3 data-t="chLine">平均点の推移</h3><canvas id="cvL"></canvas></div>
+    <div class="chb"><h3 data-t="chRadar">項目別レーダーチャート（直近）</h3><canvas id="cvR"></canvas></div>
+  </div>
+  <div id="chNone" class="nd" style="display:none" data-t="selEe"></div>
+</div>
+
+<!-- 設定 -->
+<div id="pgCfg" class="pg">
+  <div id="cfgArea"></div>
+  <div class="cfg-add">
+    <button onclick="addSection()" data-t="addSec">＋ セクション追加</button>
+  </div>
+  <div style="margin-top:24px">
+    <button class="b b1" style="width:100%" onclick="saveCfg()" data-t="saveCfg">設定を保存</button>
+  </div>
+  <div style="margin-top:12px">
+    <button class="b b2" style="width:100%" onclick="resetCfg()" data-t="resetCfg">初期設定に戻す</button>
+  </div>
+</div>
+
+<!-- モーダル -->
+<div class="mo" id="modal" onclick="if(event.target===this)closeMo()">
+  <div class="mc" id="moBody"></div>
+</div>
+<div class="toast" id="toast"></div>
+
+<!-- タブ -->
+<nav class="tabs">
+  <button class="on" data-pg="pgIn" onclick="swTab(this)">
+    <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zM14 3.5L18.5 8H14V3.5zM6 20V4h6v6h6v10H6z"/><path d="M8 13h8v1.5H8zM8 16h5v1.5H8z"/></svg>
+    <span data-t="tabIn">入力</span>
+  </button>
+  <button data-pg="pgHi" onclick="swTab(this)">
+    <svg viewBox="0 0 24 24"><path d="M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.954 8.954 0 0 0 13 21a9 9 0 0 0 0-18zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg>
+    <span data-t="tabHi">履歴</span>
+  </button>
+  <button data-pg="pgCh" onclick="swTab(this)">
+    <svg viewBox="0 0 24 24"><path d="M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z"/></svg>
+    <span data-t="tabCh">グラフ</span>
+  </button>
+  <button data-pg="pgCfg" onclick="swTab(this)">
+    <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.48.48 0 0 0-.48-.41h-3.84a.48.48 0 0 0-.48.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.49.49 0 0 0-.59.22L2.74 8.87a.48.48 0 0 0 .12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.26.41.48.41h3.84c.24 0 .44-.17.48-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6A3.6 3.6 0 1 1 12 8.4a3.6 3.6 0 0 1 0 7.2z"/></svg>
+    <span data-t="tabCfg">設定</span>
+  </button>
+</nav>
+
+<script>
+/* ==============================================================
+   多言語（UIテキストのみ。項目名はcfgに保存）
+   ============================================================== */
+const TX={
+ja:{appTitle:'HSS 評価システム',tabIn:'入力',tabHi:'履歴',tabCh:'グラフ',tabCfg:'設定',
+labelDate:'評価日',labelEvaluator:'評価者名',labelEvaluatee:'被評価者名',
+phEv:'例：山田太郎',phEe:'例：佐藤花子',overall:'全体所感',phOv:'全体的な評価や今後の期待などを記入...',
+phCmt:'気づいた点を記入...',cmtLbl:'コメント（任意）',
+btnSave:'保存',btnReset:'リセット',btnUpdate:'更新',editingBanner:'編集中',cancelEdit:'取消',
+filterAll:'全員',btnCSV:'CSV出力',noData:'評価データがありません',
+evLbl:'評価者',avgLbl:'平均',ovLbl:'全体所感',btnEdit:'編集',btnDel:'削除',btnClose:'閉じる',
+selEe:'被評価者を選択してください',selPh:'-- 選択してください --',
+chLine:'平均点の推移',chRadar:'項目別レーダーチャート（直近）',chNone:'データがありません',chAvg:'平均点',
+tSaved:'保存しました',tUpdated:'更新しました',tReset:'リセットしました',tDel:'削除しました',tCSV:'CSVをダウンロードしました',
+eNm:'評価者名と被評価者名を入力してください',eDt:'評価日を入力してください',eSc:'未評価の項目があります',eCSV:'データがありません',
+cReset:'入力内容をすべてクリアしますか？',cDel:'この評価を削除しますか？',cCEdit:'編集中の内容を破棄しますか？',
+s5:'模範的',s4:'上回る',s3:'標準',s2:'要改善',s1:'要指導',
+addSec:'＋ セクション追加',addItem:'＋ 項目追加',saveCfg:'設定を保存',resetCfg:'初期設定に戻す',
+cfgSaved:'設定を保存しました',cfgReset:'初期設定に戻しました',cResetCfg:'評価項目を初期設定に戻しますか？',
+secName:'セクション名',itemName:'項目名',itemDesc:'説明文'},
+en:{appTitle:'HSS Evaluation System',tabIn:'Input',tabHi:'History',tabCh:'Charts',tabCfg:'Settings',
+labelDate:'Date',labelEvaluator:'Evaluator',labelEvaluatee:'Employee',
+phEv:'e.g. Taro Yamada',phEe:'e.g. Hanako Sato',overall:'Overall',phOv:'Overall assessment...',
+phCmt:'Observations...',cmtLbl:'Comment (opt.)',
+btnSave:'Save',btnReset:'Reset',btnUpdate:'Update',editingBanner:'Editing',cancelEdit:'Cancel',
+filterAll:'All',btnCSV:'CSV',noData:'No data',evLbl:'Evaluator',avgLbl:'Avg',ovLbl:'Overall',
+btnEdit:'Edit',btnDel:'Delete',btnClose:'Close',
+selEe:'Select employee',selPh:'-- Select --',chLine:'Avg Trend',chRadar:'Radar (Latest)',chNone:'No data',chAvg:'Average',
+tSaved:'Saved',tUpdated:'Updated',tReset:'Reset',tDel:'Deleted',tCSV:'CSV downloaded',
+eNm:'Enter names',eDt:'Enter date',eSc:'Unscored items',eCSV:'No data',
+cReset:'Clear all?',cDel:'Delete?',cCEdit:'Discard?',
+s5:'Exemplary',s4:'Above',s3:'Standard',s2:'Improve',s1:'Urgent',
+addSec:'+ Add Section',addItem:'+ Add Item',saveCfg:'Save Settings',resetCfg:'Reset to Default',
+cfgSaved:'Settings saved',cfgReset:'Reset to default',cResetCfg:'Reset items to default?',
+secName:'Section name',itemName:'Item name',itemDesc:'Description'},
+vi:{appTitle:'HSS Evaluation System',tabIn:'Nhập',tabHi:'Lịch sử',tabCh:'Biểu đồ',tabCfg:'Cài đặt',
+labelDate:'Ngày',labelEvaluator:'Người ĐG',labelEvaluatee:'Nhân viên',
+phEv:'VD: Yamada',phEe:'VD: Sato',overall:'Nhận xét chung',phOv:'Đánh giá tổng thể...',
+phCmt:'Ghi chú...',cmtLbl:'Bình luận',
+btnSave:'Lưu',btnReset:'Đặt lại',btnUpdate:'Cập nhật',editingBanner:'Đang sửa',cancelEdit:'Hủy',
+filterAll:'Tất cả',btnCSV:'CSV',noData:'Không có dữ liệu',evLbl:'Người ĐG',avgLbl:'TB',ovLbl:'Nhận xét',
+btnEdit:'Sửa',btnDel:'Xóa',btnClose:'Đóng',
+selEe:'Chọn nhân viên',selPh:'-- Chọn --',chLine:'Xu hướng TB',chRadar:'Radar',chNone:'Không có',chAvg:'TB',
+tSaved:'Đã lưu',tUpdated:'Cập nhật',tReset:'Đặt lại',tDel:'Đã xóa',tCSV:'Đã tải',
+eNm:'Nhập tên',eDt:'Nhập ngày',eSc:'Chưa chấm hết',eCSV:'Không có',
+cReset:'Xóa tất cả?',cDel:'Xóa?',cCEdit:'Hủy?',
+s5:'Xuất sắc',s4:'Tốt',s3:'Đạt',s2:'Cải thiện',s1:'Khẩn cấp',
+addSec:'+ Thêm mục',addItem:'+ Thêm',saveCfg:'Lưu cài đặt',resetCfg:'Mặc định',
+cfgSaved:'Đã lưu',cfgReset:'Đã đặt lại',cResetCfg:'Đặt lại?',
+secName:'Tên mục',itemName:'Tên',itemDesc:'Mô tả'},
+id:{appTitle:'HSS Evaluation System',tabIn:'Input',tabHi:'Riwayat',tabCh:'Grafik',tabCfg:'Pengaturan',
+labelDate:'Tanggal',labelEvaluator:'Penilai',labelEvaluatee:'Karyawan',
+phEv:'Cth: Yamada',phEe:'Cth: Sato',overall:'Keseluruhan',phOv:'Penilaian...',
+phCmt:'Catatan...',cmtLbl:'Komentar',
+btnSave:'Simpan',btnReset:'Reset',btnUpdate:'Perbarui',editingBanner:'Mengedit',cancelEdit:'Batal',
+filterAll:'Semua',btnCSV:'CSV',noData:'Tidak ada data',evLbl:'Penilai',avgLbl:'Rata',ovLbl:'Keseluruhan',
+btnEdit:'Edit',btnDel:'Hapus',btnClose:'Tutup',
+selEe:'Pilih karyawan',selPh:'-- Pilih --',chLine:'Tren Rata-rata',chRadar:'Radar',chNone:'Tidak ada',chAvg:'Rata-rata',
+tSaved:'Tersimpan',tUpdated:'Diperbarui',tReset:'Direset',tDel:'Dihapus',tCSV:'Diunduh',
+eNm:'Masukkan nama',eDt:'Masukkan tanggal',eSc:'Belum dinilai',eCSV:'Tidak ada',
+cReset:'Hapus semua?',cDel:'Hapus?',cCEdit:'Buang?',
+s5:'Teladan',s4:'Baik',s3:'Standar',s2:'Perbaikan',s1:'Mendesak',
+addSec:'+ Tambah Bagian',addItem:'+ Tambah',saveCfg:'Simpan',resetCfg:'Default',
+cfgSaved:'Tersimpan',cfgReset:'Direset',cResetCfg:'Reset?',
+secName:'Nama bagian',itemName:'Nama',itemDesc:'Deskripsi'}
+};
+
+/* ==============================================================
+   デフォルト評価項目
+   ============================================================== */
+function defaultCfg(){return{sections:[
+  {id:'A',name:'分娩舎業務'},
+  {id:'B',name:'仕事への姿勢'}
+],items:[
+  {id:'item1',secId:'A',name:'母豚の健康観察',desc:'食欲・行動・乳房状態の確認、異常の有無'},
+  {id:'item2',secId:'A',name:'分娩介助の対応',desc:'介助タイミング、難産時の処置、分娩記録の正確性'},
+  {id:'item3',secId:'A',name:'子豚のケア',desc:'初乳給与、去勢・歯切り・断尾・体重測定などの処置'},
+  {id:'item4',secId:'A',name:'哺乳・離乳管理',desc:'人工哺乳、里子調整、離乳作業の段取り'},
+  {id:'item5',secId:'A',name:'衛生管理・消毒',desc:'豚房清掃、器具消毒、防疫意識'},
+  {id:'item6',secId:'A',name:'環境管理',desc:'温度・湿度・換気・保温灯の調整'},
+  {id:'item7',secId:'A',name:'異常の早期発見と報告',desc:'疾病・事故・死亡の早期察知と報連相'},
+  {id:'item8',secId:'B',name:'時間厳守・出勤態度',desc:'始業前準備、遅刻欠勤、身だしなみ'},
+  {id:'item9',secId:'B',name:'報連相とチームワーク',desc:'情報共有、協力姿勢、引き継ぎの正確さ'},
+  {id:'item10',secId:'B',name:'改善意識・学習姿勢',desc:'提案、振り返り、新しい知識の習得意欲'}
+]}}
+
+/* ==============================================================
+   グローバル状態
+   ============================================================== */
+const SKEY='pig_farm_evaluation_v1';
+const CKEY='pig_farm_eval_items_v1';
+const LKEY='pig_farm_eval_lang';
+let lang=localStorage.getItem(LKEY)||'ja';
+let cfg=loadCfg();
+let dirty=false,editId=null,autoT=null;
+
+function t(k){return(TX[lang]||TX.ja)[k]||TX.ja[k]||k}
+function loadCfg(){try{const r=localStorage.getItem(CKEY);return r?JSON.parse(r):defaultCfg()}catch{return defaultCfg()}}
+function getItems(){return cfg.items}
+function getSections(){return cfg.sections}
+
+/* ==============================================================
+   言語
+   ============================================================== */
+function setLang(l){
+  lang=l;localStorage.setItem(LKEY,l);document.documentElement.lang=l;
+  document.querySelectorAll('.lsw button').forEach(b=>b.classList.toggle('on',b.textContent.trim()==={ja:'JP',en:'EN',vi:'VI',id:'ID'}[l]));
+  applyT();buildCards();restoreSt();buildCfgUI();
+}
+function applyT(){
+  document.querySelectorAll('[data-t]').forEach(el=>{el.textContent=t(el.dataset.t)});
+  document.querySelectorAll('[data-ph]').forEach(el=>{el.placeholder=t(el.dataset.ph)});
+  document.getElementById('btnSave').textContent=editId?t('btnUpdate'):t('btnSave');
+}
+let _fs=null;
+function saveSt(){_fs=collectForm()}
+function restoreSt(){if(!_fs)return;const d=_fs;getItems().forEach(it=>{
+  const sc=d.scores[it.id];if(sc){const b=document.querySelector('.sb[data-id="'+it.id+'"][data-s="'+sc+'"]');if(b){b.classList.add('sel');const c=document.getElementById('c-'+it.id);if(c)c.classList.add('scored')}}
+  const cm=d.comments[it.id];if(cm){const ta=document.querySelector('textarea[data-cid="'+it.id+'"]');if(ta)ta.value=cm}
+});_fs=null}
+
+/* ==============================================================
+   初期化
+   ============================================================== */
+document.addEventListener('DOMContentLoaded',()=>{
+  document.getElementById('fDate').value=new Date().toISOString().split('T')[0];
+  setLang(lang);
+  window.addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.returnValue=''}});
+  refreshSel();
+});
+
+/* ==============================================================
+   評価カード生成（cfgベース）
+   ============================================================== */
+function buildCards(){
+  saveSt();
+  const el=document.getElementById('cards');
+  const secs=getSections(),items=getItems();
+  let h='';
+  secs.forEach((sec,si)=>{
+    const secItems=items.filter(it=>it.secId===sec.id);
+    if(!secItems.length)return;
+    h+=`<div class="stit">${sec.name}</div>`;
+    secItems.forEach((it,ii)=>{
+      h+=`<div class="cd ec" id="c-${it.id}">
+        <div class="en">${sec.name.charAt(0)}-${ii+1}</div>
+        <div class="enm">${esc(it.name)}</div>
+        <div class="ed">${esc(it.desc)}</div>
+        <div class="sr">${[1,2,3,4,5].map(s=>`<button class="sb" data-id="${it.id}" data-s="${s}" onclick="pick('${it.id}',${s},this)">${s}<span class="sl">${t('s'+s)}</span></button>`).join('')}</div>
+        <div class="clbl">${t('cmtLbl')}</div>
+        <textarea data-cid="${it.id}" placeholder="${t('phCmt')}" oninput="onCh()"></textarea>
+      </div>`;
+    });
+  });
+  el.innerHTML=h;
+}
+function pick(id,s,btn){btn.parentElement.querySelectorAll('.sb').forEach(b=>b.classList.remove('sel'));btn.classList.add('sel');document.getElementById('c-'+id).classList.add('scored');onCh()}
+
+/* ==============================================================
+   入力変更
+   ============================================================== */
+function onCh(){dirty=true;clearTimeout(autoT);autoT=setTimeout(saveDraft,300)}
+['fDate','fEv','fEe','fOv'].forEach(id=>document.getElementById(id).addEventListener('input',onCh));
+function saveDraft(){const d=collectForm();d._editId=editId;localStorage.setItem(SKEY+'_draft',JSON.stringify(d))}
+function collectForm(){
+  const sc={},cm={};
+  getItems().forEach(it=>{
+    const b=document.querySelector('.sb[data-id="'+it.id+'"].sel');sc[it.id]=b?+b.dataset.s:null;
+    const ta=document.querySelector('textarea[data-cid="'+it.id+'"]');cm[it.id]=ta?ta.value:'';
+  });
+  return{date:document.getElementById('fDate').value,evaluator:document.getElementById('fEv').value,evaluatee:document.getElementById('fEe').value,scores:sc,comments:cm,overall:document.getElementById('fOv').value};
+}
+
+/* ==============================================================
+   保存
+   ============================================================== */
+function doSave(){
+  const d=collectForm();
+  if(!d.evaluator.trim()||!d.evaluatee.trim()){toast(t('eNm'),1);return}
+  if(!d.date){toast(t('eDt'),1);return}
+  const miss=getItems().filter(it=>d.scores[it.id]===null);
+  if(miss.length){miss.forEach(it=>{const c=document.getElementById('c-'+it.id);c.classList.add('warn');setTimeout(()=>c.classList.remove('warn'),1000)});
+    toast(t('eSc')+'('+miss.length+')',1);document.getElementById('c-'+miss[0].id).scrollIntoView({behavior:'smooth',block:'center'});return}
+  const all=getAll();
+  if(editId){
+    const idx=all.findIndex(e=>e.id===editId);
+    if(idx!==-1)all[idx]={...all[idx],date:d.date,evaluator:d.evaluator.trim(),evaluatee:d.evaluatee.trim(),scores:d.scores,comments:d.comments,overall:d.overall,updatedAt:new Date().toISOString()};
+    localStorage.setItem(SKEY,JSON.stringify({evaluations:all}));toast(t('tUpdated'));exitEdit();
+  }else{
+    all.push({id:crypto.randomUUID(),date:d.date,evaluator:d.evaluator.trim(),evaluatee:d.evaluatee.trim(),scores:d.scores,comments:d.comments,overall:d.overall,createdAt:new Date().toISOString()});
+    localStorage.setItem(SKEY,JSON.stringify({evaluations:all}));toast(t('tSaved'));
+  }
+  localStorage.removeItem(SKEY+'_draft');dirty=false;refreshSel();
+}
+
+/* ==============================================================
+   編集モード
+   ============================================================== */
+function startEdit(id){
+  const rec=getAll().find(e=>e.id===id);if(!rec)return;
+  editId=id;closeMo();
+  document.querySelectorAll('.tabs button').forEach(b=>b.classList.remove('on'));
+  document.querySelector('[data-pg="pgIn"]').classList.add('on');
+  document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));
+  document.getElementById('pgIn').classList.add('on');
+  document.getElementById('fDate').value=rec.date;
+  document.getElementById('fEv').value=rec.evaluator;
+  document.getElementById('fEe').value=rec.evaluatee;
+  document.getElementById('fOv').value=rec.overall||'';
+  document.querySelectorAll('.sb.sel').forEach(b=>b.classList.remove('sel'));
+  document.querySelectorAll('.ec.scored').forEach(c=>c.classList.remove('scored'));
+  getItems().forEach(it=>{
+    const sc=rec.scores[it.id];if(sc){const b=document.querySelector('.sb[data-id="'+it.id+'"][data-s="'+sc+'"]');if(b){b.classList.add('sel');document.getElementById('c-'+it.id).classList.add('scored')}}
+    const ta=document.querySelector('textarea[data-cid="'+it.id+'"]');if(ta)ta.value=rec.comments[it.id]||'';
+  });
+  document.getElementById('editBar').classList.add('show');
+  document.getElementById('btnSave').textContent=t('btnUpdate');
+  window.scrollTo({top:0,behavior:'smooth'});dirty=false;
+}
+function cancelEdit(){if(dirty&&!confirm(t('cCEdit')))return;exitEdit();clearForm()}
+function exitEdit(){editId=null;document.getElementById('editBar').classList.remove('show');document.getElementById('btnSave').textContent=t('btnSave')}
+function doReset(){if(!confirm(t('cReset')))return;clearForm();if(editId)exitEdit();toast(t('tReset'))}
+function clearForm(){
+  document.getElementById('fDate').value=new Date().toISOString().split('T')[0];
+  ['fEv','fEe','fOv'].forEach(id=>document.getElementById(id).value='');
+  document.querySelectorAll('.sb.sel').forEach(b=>b.classList.remove('sel'));
+  document.querySelectorAll('.ec.scored').forEach(c=>c.classList.remove('scored'));
+  document.querySelectorAll('.ec textarea').forEach(ta=>ta.value='');
+  localStorage.removeItem(SKEY+'_draft');dirty=false;
+}
+
+/* ==============================================================
+   データ
+   ============================================================== */
+function getAll(){try{const r=localStorage.getItem(SKEY);return r?JSON.parse(r).evaluations||[]:[]}catch{return[]}}
+
+/* ==============================================================
+   タブ
+   ============================================================== */
+let cfgUnlocked=false;
+function swTab(btn){
+  // 設定タブはパスワード認証が必要
+  if(btn.dataset.pg==='pgCfg'&&!cfgUnlocked){
+    const pw=prompt(lang==='ja'?'設定画面のパスワードを入力してください':'Enter password for settings:');
+    if(!pw||pw.toUpperCase()!=='OOIRI'){toast(lang==='ja'?'パスワードが違います':'Wrong password',1);return}
+    cfgUnlocked=true;
+  }
+  document.querySelectorAll('.tabs button').forEach(b=>b.classList.remove('on'));btn.classList.add('on');
+  document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));
+  document.getElementById(btn.dataset.pg).classList.add('on');
+  if(btn.dataset.pg==='pgHi'){refreshSel();drawHist()}
+  if(btn.dataset.pg==='pgCh'){refreshSel();drawCharts()}
+  if(btn.dataset.pg==='pgCfg')buildCfgUI();
+}
+function refreshSel(){
+  const ns=[...new Set(getAll().map(e=>e.evaluatee))].sort();
+  const hf=document.getElementById('hFil'),hv=hf.value;
+  hf.innerHTML=`<option value="">${t('filterAll')}</option>`+ns.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join('');hf.value=hv;
+  const cs=document.getElementById('chSel'),cv=cs.value;
+  cs.innerHTML=`<option value="">${t('selPh')}</option>`+ns.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join('');cs.value=cv;
+}
+
+/* ==============================================================
+   履歴
+   ============================================================== */
+function drawHist(){
+  const f=document.getElementById('hFil').value;let all=getAll();if(f)all=all.filter(e=>e.evaluatee===f);
+  all.sort((a,b)=>b.date.localeCompare(a.date)||(b.createdAt||'').localeCompare(a.createdAt||''));
+  const c=document.getElementById('hList');
+  if(!all.length){c.innerHTML=`<div class="nd">${t('noData')}</div>`;return}
+  c.innerHTML=all.map(r=>`<div class="hi" onclick="showDet('${r.id}')"><div class="hii"><div class="hid">${r.date}　${t('evLbl')}: ${esc(r.evaluator)}</div><div class="hin">${esc(r.evaluatee)}</div></div><div class="hia">${avg(r.scores)}</div></div>`).join('');
+}
+function avg(sc){const v=Object.values(sc).filter(x=>x!=null);return v.length?(v.reduce((a,b)=>a+b,0)/v.length).toFixed(1):'-'}
+
+/* ==============================================================
+   詳細モーダル
+   ============================================================== */
+function showDet(id){
+  const r=getAll().find(e=>e.id===id);if(!r)return;
+  const av=avg(r.scores);const items=getItems();
+  let h=`<div class="mh"><h3>${esc(r.evaluatee)} - ${r.date}</h3><button class="mx" onclick="closeMo()">&times;</button></div>`;
+  h+=`<div style="font-size:.85rem;color:var(--sub);margin-bottom:12px">${t('evLbl')}: ${esc(r.evaluator)}　／　${t('avgLbl')}: ${av}</div>`;
+  items.forEach(it=>{
+    const sc=r.scores[it.id],cm=r.comments[it.id];
+    h+=`<div class="di"><div class="dih"><span class="din">${esc(it.name)}</span>${sc?`<span class="dis sb${sc}">${sc}</span>`:''}</div>${cm?`<div class="dic">${esc(cm)}</div>`:''}</div>`;
+  });
+  if(r.overall)h+=`<div class="dov"><strong>${t('ovLbl')}:</strong><br>${esc(r.overall)}</div>`;
+  h+=`<div class="ma"><button class="b b4" style="flex:1" onclick="startEdit('${r.id}')">${t('btnEdit')}</button><button class="b b2" style="flex:1" onclick="doDel('${r.id}')">${t('btnDel')}</button><button class="b b3" style="flex:1" onclick="closeMo()">${t('btnClose')}</button></div>`;
+  document.getElementById('moBody').innerHTML=h;
+  document.getElementById('modal').classList.add('show');
+}
+function closeMo(){document.getElementById('modal').classList.remove('show')}
+function doDel(id){if(!confirm(t('cDel')))return;let all=getAll().filter(e=>e.id!==id);localStorage.setItem(SKEY,JSON.stringify({evaluations:all}));closeMo();drawHist();refreshSel();toast(t('tDel'))}
+
+/* ==============================================================
+   CSV
+   ============================================================== */
+function doCSV(){
+  const all=getAll(),items=getItems();if(!all.length){toast(t('eCSV'),1);return}
+  const hd=['評価日','評価者','被評価者',...items.map(it=>it.name+'(スコア)'),...items.map(it=>it.name+'(コメント)'),'平均点','全体所感','作成日時'];
+  const rows=all.map(r=>[r.date,r.evaluator,r.evaluatee,...items.map(it=>r.scores[it.id]||''),...items.map(it=>(r.comments[it.id]||'').replace(/"/g,'""')),avg(r.scores),(r.overall||'').replace(/"/g,'""'),r.createdAt||'']);
+  let csv='\uFEFF'+hd.map(h=>`"${h}"`).join(',')+'\n';
+  rows.forEach(r=>{csv+=r.map(c=>`"${c}"`).join(',')+'\n'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'}));
+  a.download='evaluation_'+new Date().toISOString().slice(0,10).replace(/-/g,'')+'.csv';a.click();toast(t('tCSV'));
+}
+
+/* ==============================================================
+   グラフ
+   ============================================================== */
+let cL=null,cR=null;
+function drawCharts(){
+  const who=document.getElementById('chSel').value,area=document.getElementById('chArea'),none=document.getElementById('chNone');
+  if(!who){area.style.display='none';none.style.display='block';none.textContent=t('selEe');return}
+  const all=getAll().filter(e=>e.evaluatee===who);
+  if(!all.length){area.style.display='none';none.style.display='block';none.textContent=t('chNone');return}
+  area.style.display='block';none.style.display='none';
+  all.sort((a,b)=>a.date.localeCompare(b.date));
+  const items=getItems();
+  if(cL)cL.destroy();
+  cL=new Chart(document.getElementById('cvL'),{type:'line',data:{labels:all.map(e=>e.date),datasets:[{label:t('chAvg'),data:all.map(e=>parseFloat(avg(e.scores))),borderColor:'#2e7d6f',backgroundColor:'rgba(46,125,111,.1)',fill:true,tension:.3,pointRadius:5,pointBackgroundColor:'#2e7d6f'}]},options:{responsive:true,maintainAspectRatio:false,scales:{y:{min:1,max:5,ticks:{stepSize:1}}},plugins:{legend:{display:false}}}});
+  const lat=all[all.length-1];
+  if(cR)cR.destroy();
+  cR=new Chart(document.getElementById('cvR'),{type:'radar',data:{labels:items.map(it=>{const n=it.name;return n.length>6?n.slice(0,6)+'…':n}),datasets:[{label:lat.date,data:items.map(it=>lat.scores[it.id]||0),borderColor:'#2e7d6f',backgroundColor:'rgba(46,125,111,.2)',pointBackgroundColor:'#2e7d6f'}]},options:{responsive:true,maintainAspectRatio:false,scales:{r:{min:0,max:5,ticks:{stepSize:1,font:{size:10}},pointLabels:{font:{size:11}}}},plugins:{legend:{display:true,position:'bottom'}}}});
+}
+
+/* ==============================================================
+   設定画面（項目の追加・編集・削除・並べ替え）
+   ============================================================== */
+function buildCfgUI(){
+  const area=document.getElementById('cfgArea');
+  const secs=cfg.sections, items=cfg.items;
+  let h='';
+  secs.forEach((sec,si)=>{
+    const secItems=items.filter(it=>it.secId===sec.id);
+    h+=`<div class="cfg-sec" data-sec="${sec.id}">`;
+    h+=`<div class="cfg-sec-hdr">
+      <input type="text" value="${esc(sec.name)}" onchange="cfgSecName('${sec.id}',this.value)" placeholder="${t('secName')}">
+      <div class="ci-btns">
+        ${si>0?`<button onclick="moveSec('${sec.id}',-1)" title="上へ">&#9650;</button>`:'<button style="visibility:hidden">&#9650;</button>'}
+        ${si<secs.length-1?`<button onclick="moveSec('${sec.id}',1)" title="下へ">&#9660;</button>`:'<button style="visibility:hidden">&#9660;</button>'}
+        <button class="del" onclick="delSec('${sec.id}')" title="削除">&#10005;</button>
+      </div>
+    </div>`;
+    secItems.forEach((it,ii)=>{
+      h+=`<div class="cfg-item">
+        <div class="ci-row">
+          <input type="text" value="${esc(it.name)}" onchange="cfgItemName('${it.id}',this.value)" placeholder="${t('itemName')}">
+          <div class="ci-btns">
+            ${ii>0?`<button onclick="moveItem('${it.id}',-1)">&#9650;</button>`:'<button style="visibility:hidden">&#9650;</button>'}
+            ${ii<secItems.length-1?`<button onclick="moveItem('${it.id}',1)">&#9660;</button>`:'<button style="visibility:hidden">&#9660;</button>'}
+            <button class="del" onclick="delItem('${it.id}')">&#10005;</button>
+          </div>
+        </div>
+        <textarea onchange="cfgItemDesc('${it.id}',this.value)" placeholder="${t('itemDesc')}">${esc(it.desc)}</textarea>
+      </div>`;
+    });
+    h+=`<div class="cfg-add"><button onclick="addItem('${sec.id}')">${t('addItem')}</button></div>`;
+    h+=`</div>`;
+  });
+  area.innerHTML=h;
+}
+
+/* セクション名変更 */
+function cfgSecName(secId,val){const s=cfg.sections.find(s=>s.id===secId);if(s)s.name=val}
+/* 項目名変更 */
+function cfgItemName(itemId,val){const it=cfg.items.find(i=>i.id===itemId);if(it)it.name=val}
+/* 項目説明変更 */
+function cfgItemDesc(itemId,val){const it=cfg.items.find(i=>i.id===itemId);if(it)it.desc=val}
+
+/* セクション追加 */
+function addSection(){
+  const id='sec_'+Date.now();
+  cfg.sections.push({id,name:t('secName')});
+  buildCfgUI();
+}
+/* セクション内に項目追加 */
+function addItem(secId){
+  const id='item_'+Date.now();
+  // そのセクションの最後の項目の後ろに挿入
+  const lastIdx=cfg.items.map((it,i)=>it.secId===secId?i:-1).filter(i=>i>=0);
+  const insertAt=lastIdx.length?lastIdx[lastIdx.length-1]+1:cfg.items.length;
+  cfg.items.splice(insertAt,0,{id,secId,name:'',desc:''});
+  buildCfgUI();
+  // 新しい項目の名前入力にフォーカス
+  setTimeout(()=>{const inputs=document.querySelectorAll(`.cfg-item input[type="text"]`);if(inputs.length)inputs[inputs.length-1].focus()},50);
+}
+/* セクション削除（中の項目も削除） */
+function delSec(secId){
+  if(!confirm('このセクションと全項目を削除しますか？'))return;
+  cfg.sections=cfg.sections.filter(s=>s.id!==secId);
+  cfg.items=cfg.items.filter(it=>it.secId!==secId);
+  buildCfgUI();
+}
+/* 項目削除 */
+function delItem(itemId){
+  cfg.items=cfg.items.filter(it=>it.id!==itemId);
+  buildCfgUI();
+}
+/* セクション並べ替え */
+function moveSec(secId,dir){
+  const i=cfg.sections.findIndex(s=>s.id===secId);
+  if(i<0)return;const j=i+dir;if(j<0||j>=cfg.sections.length)return;
+  [cfg.sections[i],cfg.sections[j]]=[cfg.sections[j],cfg.sections[i]];
+  buildCfgUI();
+}
+/* 項目並べ替え（同一セクション内） */
+function moveItem(itemId,dir){
+  const secId=cfg.items.find(it=>it.id===itemId)?.secId;if(!secId)return;
+  // セクション内のアイテムのインデックスを取得
+  const secItems=cfg.items.filter(it=>it.secId===secId);
+  const localIdx=secItems.findIndex(it=>it.id===itemId);
+  const swapIdx=localIdx+dir;
+  if(swapIdx<0||swapIdx>=secItems.length)return;
+  // グローバルインデックスで入れ替え
+  const gi=cfg.items.indexOf(secItems[localIdx]);
+  const gj=cfg.items.indexOf(secItems[swapIdx]);
+  [cfg.items[gi],cfg.items[gj]]=[cfg.items[gj],cfg.items[gi]];
+  buildCfgUI();
+}
+
+/* 設定保存 */
+function saveCfg(){
+  localStorage.setItem(CKEY,JSON.stringify(cfg));
+  buildCards();restoreSt();
+  toast(t('cfgSaved'));
+}
+/* 初期設定に戻す */
+function resetCfg(){
+  if(!confirm(t('cResetCfg')))return;
+  cfg=defaultCfg();
+  localStorage.setItem(CKEY,JSON.stringify(cfg));
+  buildCfgUI();buildCards();
+  toast(t('cfgReset'));
+}
+
+/* ==============================================================
+   ユーティリティ
+   ============================================================== */
+function toast(msg,err){const el=document.getElementById('toast');el.textContent=msg;el.style.background=err?'#d32f2f':'#333';el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2500)}
+function esc(s){if(!s)return'';const d=document.createElement('div');d.textContent=s;return d.innerHTML}
+</script>
+</body>
+</html>
