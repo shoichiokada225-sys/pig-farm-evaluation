@@ -1,0 +1,15 @@
+{
+  "name": "HSS 評価システム",
+  "short_name": "HSS評価",
+  "description": "豚舎別 従業員実技評価（HSS認定制度）",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f5f7f6",
+  "theme_color": "#2e7d6f",
+  "lang": "ja",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

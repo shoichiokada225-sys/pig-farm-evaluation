@@ -4,7 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>HSS 評価システム</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js" integrity="sha384-vsrfeLOOY6KuIYKDlmVH5UiBmgIdB1oEf7p01YgWHuqmOHfZr374+odEv96n9tNC" crossorigin="anonymous"></script>
+<meta name="theme-color" content="#2e7d6f">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<script src="chart.umd.min.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -146,6 +150,28 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","N
 /* 警告 */
 .ec.warn{border-left-color:var(--s1);animation:shake .4s}
 @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+
+/* 採点進捗バー */
+.prog{position:sticky;top:0;z-index:90;background:var(--bg);display:flex;align-items:center;gap:10px;padding:10px 0 8px;margin-bottom:8px}
+.prog-b{flex:1;height:8px;background:#dfe4e2;border-radius:4px;overflow:hidden}
+.prog-f{height:100%;background:var(--pri);border-radius:4px;width:0;transition:width .25s}
+.prog-f.done{background:var(--s5)}
+.prog-t{font-size:.8rem;font-weight:700;color:var(--pri-d);white-space:nowrap}
+
+/* 評価基準（レベル1〜5） */
+.crit-tg{width:100%;margin:2px 0 10px;background:var(--pri-l);border:1px solid var(--pri);color:var(--pri-d);border-radius:8px;padding:9px 12px;font-size:.82rem;font-weight:700;cursor:pointer;text-align:center}
+.crit-tg:active{transform:scale(.98)}
+.crit{display:none;margin:0 0 12px;border:1px solid var(--bdr);border-radius:10px;overflow:hidden;background:#fff}
+.crit.open{display:block}
+.crit-k{padding:10px 12px;background:#f4f7f6;font-size:.8rem;color:var(--sub);line-height:1.55;border-bottom:1px solid var(--bdr)}
+.crit-k b{color:var(--pri-d);margin-right:6px}
+.crit-lv{display:flex;gap:10px;padding:10px 12px;border-bottom:1px solid #f0f0f0;cursor:pointer;align-items:flex-start;transition:background .15s}
+.crit-lv:last-child{border-bottom:none}
+.crit-lv:active{background:var(--pri-l)}
+.crit-lv.sel{background:var(--pri-l);box-shadow:inset 4px 0 0 var(--pri)}
+.crit-n{flex-shrink:0;width:30px;height:30px;border-radius:8px;color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center;font-size:.95rem}
+.crit-t{font-size:.78rem;line-height:1.55}
+.crit-t b{display:block;font-size:.72rem;color:var(--sub);margin-bottom:2px}
 @media(min-width:640px){.pg{padding:24px}.sb{min-height:52px;font-size:1.2rem}}
 </style>
 </head>
@@ -163,7 +189,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","N
 </header>
 
 <div class="barnbar">
-  <span class="barnbar-lbl">🏠 豚舎</span>
+  <span class="barnbar-lbl" data-t="barnLbl">🏠 豚舎</span>
   <select id="barnSel" onchange="setBarn(this.value)"></select>
 </div>
 
@@ -174,6 +200,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","N
 
 <!-- 入力 -->
 <div id="pgIn" class="pg on">
+  <div class="prog"><div class="prog-b"><div class="prog-f" id="progF"></div></div><span class="prog-t" id="progT"></span></div>
   <div class="cd meta">
     <label data-t="labelDate">評価日</label>
     <input type="date" id="fDate">
@@ -236,6 +263,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","N
     </div>
     <input type="file" id="impFile" accept="application/json,.json" style="display:none" onchange="importCfg(this)">
   </div>
+
+  <div style="margin-top:28px;border-top:1px dashed var(--bdr);padding-top:18px">
+    <p data-t="backupHint" style="font-size:.8rem;color:var(--sub);line-height:1.6;margin:0 0 12px">端末の故障や誤消去に備えて、全豚舎の評価データと項目を1ファイルに保存できます。復元では既存の記録は残り、新しい記録だけが追加されます。</p>
+    <button class="b b4" style="width:100%" onclick="exportAll()" data-t="expAll">⬇ 全データをバックアップ（評価＋項目）</button>
+    <div style="margin-top:12px">
+      <button class="b b3" style="width:100%" onclick="document.getElementById('impAllFile').click()" data-t="impAll">⬆ バックアップから復元</button>
+    </div>
+    <input type="file" id="impAllFile" accept="application/json,.json" style="display:none" onchange="importAll(this)">
+  </div>
 </div>
 
 <!-- モーダル -->
@@ -264,6 +300,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","N
   </button>
 </nav>
 
+<script id="criteriaData" type="application/json">[{"key":"farrow","sheet":"分娩舎","scale":"業務","items":[{"no":"分-1","name":"母豚の健康観察（食欲・行動・乳房状態の確認、異常の有無）","kanten":"分娩舎の母豚を毎日見回り、飼料の食べ具合・起立の様子・乳房の張りや乳の出・尻まわりの汚れやにおい・飲水量を確認し、平常との違いに気づけるか。発熱が疑われるときは体温を測定できるか。","level1":"母豚の前を素通りし、飼料の食べ残しや、横臥したまま動かない母豚に気づかない。乳房の赤みや腫れ、尻まわりの異臭をともなう汚れを見ても異常と捉えず放置する。見回り自体も、指示がなければ行わない。","level2":"指示があれば、飼料の食べ残しや元気の有無はある程度確認できるが、乳房の張りや乳の出のかたより、飲水量の低下などを見落としがち。異常かどうかの判断は常に他者まかせで、自力では正常か異常かの線引きができない。","level3":"指示があればひと通り見回り、飼料の食べ残し・呼んでも起立しない元気のなさ・尻まわりの異臭をともなう汚れなど、目に見える異常に気づける。乳房をひと通り触れて張りを確認し、子豚がすべての乳首に吸いついているか（腹部がふくれているか）も確かめられる。","level4":"指示がなくても毎日欠かさず見回り、飼料の摂取が落ちたり元気がなかったりすれば、発熱を疑って体温を測定する。平常より高ければ分娩後の体調不良（乳房の腫れ・発熱・乳の出が悪い 等）を疑い、乳房のしこりや熱感、乳の出、飲水量まで確かめて原因を探り、給餌を控えて飲水を促すなど、初期の手当てをしたうえで報告できる。","level5":"観察結果を分娩後の体調不良の知識と結びつけて的確に捉え、上長への相談・経過観察・授乳の工夫・移動の判断・記録・報告まで自力で判断できる。体格・栄養状態（やせ・標準・過肥）を目安に、母豚ごとに給餌量を細かく加減し、体温・飲水・乳の出の平常の様子と着眼点を新人に指導できる。"},{"no":"分-2","name":"分娩介助の対応（介助タイミング、難産時の処置、分娩記録の正確性）","kanten":"分娩の進行間隔に注意を払いながら見守り、難産の見分け・産道の確認や子豚の引き出し・定められた分娩処置や薬剤の使用・記録を、清潔かつ正確に行えるか。","level1":"分娩の進み具合を見ておらず、子豚が産道で引っかかっても気づかない。手指を消毒せず、潤滑剤も使わずに産道へ手を入れる、無理に引っ張るなど、危険で雑な扱いをする。出生数や死産数の記録も行わない。","level2":"指示があれば分娩を見守れるが、分娩間隔を正確に計れず、難産の見分けが遅れがち。介助の要否は他者まかせで、定められた分娩薬の使い方も自力では判断できず、記録も抜け漏れが多い。","level3":"指示があれば分娩間隔を計りながら見守り、口や鼻のぬめりを取る・乾いたタオルで拭く・へその緒を適切な長さで切って消毒する、という一連の流れを行える。生存出生数・死産数・腹中で育たず固まって生まれた子豚の数を正しく記録し、分娩間隔が空くなど難産が疑われれば報告できる。","level4":"指示がなくても分娩を計りながら見守り、分娩間隔が平常より空きすぎれば難産を疑う。まず母豚を起立させて向きを変えるよう促し、改善しなければ清潔な長手袋をして潤滑剤を用い、産道を確かめ、母豚のいきみに合わせて慎重に引き出す。産道に子豚がいなければ定められた分娩薬を用いて経過を見て、それでも生まれなければ上長へ連絡する。胎盤が排出されたか、分娩後の体温も確かめる。","level5":"子豚が大きすぎる・体位が悪い・いきむ力が弱いなど、難産の原因を見分けて手当てを選べる。産道の入り口が十分に開く前に分娩薬を用いると母豚の損傷や死産を招くと理解し、開き具合の確認と用量を必ず守る。分娩記録（出生数・死産数・所要時間・介助の内容）を成績の見直しや次回の分娩管理に役立てつつ、介助の見極めと手技を新人に指導できる。"},{"no":"分-3","name":"子豚のケア（初乳給与、去勢・歯切り・断尾・体重測定などの処置）","kanten":"生まれたばかりの子豚に初乳を与えて保温し、鉄分の補給・歯切り・尾の処置・去勢などを、適切な時期に清潔かつ正確に行えるか。","level1":"初乳を飲めていない弱い子豚への対応や、保温場所の用意をおろそかにする。鉄分の補給や歯切りを指示されても行えず、あるいは不潔で雑な手技により出血や事故を生じさせる。","level2":"指示があれば処置の一部は行えるが、初乳の摂取確認のもれや、鉄分の注入部位・量、去勢時期の誤りが多い。処置の可否や順序は他者まかせ。","level3":"指示があれば、出生後できるだけ早く初乳の摂取を介助し、適切な時期に鉄分の注射を後肢に行い、とがった歯の歯切り・必要に応じた尾の処置・時期を見た去勢をひと通り行える。へその緒を消毒し、保温場所を確かめられる。","level4":"指示がなくても、各子豚が初乳を十分に飲めているかを腹部のふくらみで確かめ、飲めない小さい子豚には分けて与える。初乳が不十分だと離乳前の死亡が大きく増えると理解し、処置の際は器具の消毒・出血の抑制を徹底し、去勢には痛みをやわらげる処置を併せるなど、適切な初期対応ができる。","level5":"各処置の意味（病気から守る力を得る・乳首の損傷を防ぐ・闘争による傷を防ぐ）を、子豚は出生後まもなく母乳の重要な成分を取り込む力を失うといった知識で理解し、子豚の状態を見て処置の順序や実施の可否を判断・微調整できる。体重の測定値や処置の記録を残して小さい子豚の育成方針を定め、清潔で安全な手技を新人に指導できる。"},{"no":"分-4","name":"哺乳・離乳管理（人工哺乳、里子調整、離乳作業の段取り）","kanten":"出生頭数と、利用できる乳首の数・体重の釣り合いを見て、ほかの母豚への預け（里子）・人工乳による育成を調整し、離乳作業を正しい段取りで進められるか。","level1":"乳首にあぶれた子豚を放置し、里子に出す・人工乳で育てる必要に気づかない。人工乳の温度や量も適当で、離乳作業も指示がなければ動けない。","level2":"指示があれば里子付けや人工乳の手伝いはできるが、実施時期や対象の選び方を誤りやすく見落としが多い。離乳の時期や体重の目安を理解しておらず、段取りは他者まかせ。","level3":"指示があれば、利用できる乳首の数を超えてあまった子豚をほかの母豚に預け、人工乳を適温に温めて適切な間隔・量で与えられる。離乳に適した時期と体重を目安に作業をひと通り進められる。","level4":"指示がなくても子豚の体重を見て、各母豚につく子豚の体重がそろうよう振り分け、里子は初乳を与えたあとできるだけ早く、分娩時期の近い母豚につける段取りを自ら組む。移す子豚に預け先のにおいをつける、乳の飲みや体重の増え方を見て定着するまで確かめるなど、先回りした対応ができる。","level5":"里子・人工乳・離乳の各判断を、乳の出のピークを過ぎると子豚に乳が不足することや、子豚の入れ替えが過多だと病気を広げやすいことといった知識で裏づけ、調整を最小限に抑えて最適化できる。離乳は母豚を移して子豚は慣れた場所に残すなどでストレスを抑える工夫をし、離乳後の下痢の予防まで見越して記録・改善し、段取りを新人に指導できる。"},{"no":"分-5","name":"衛生管理・消毒（豚房清掃、器具消毒、防疫意識）","kanten":"分娩用の囲いや器具を正しい手順で洗浄・消毒し、人や物の動線と、病気を持ち込まない意識をもって清潔を保てるか。","level1":"糞や汚れが残ったまま消毒液をまく、希釈や作用時間を守らないなど、効果のない雑な手順をとる。器具を使い回し、汚れた場所からきれいな場所へ逆行するなど、防疫の意識がない。","level2":"指示があれば清掃・消毒はある程度できるが、洗浄が不十分・乾燥の手順を省く・消毒液の希釈を誤ることが多い。何をどの順で消毒するかは他者まかせ。","level3":"指示があれば「糞を取る→粗洗い→つけ置き→高圧洗浄→乾燥→消毒→乾燥」の手順で囲いを洗浄・消毒し、分娩用器具を消毒液で消毒できる。作業着・長靴の着用、手指の消毒など、基本の清潔な動作ができる。","level4":"指示がなくても、汚れが残ると消毒が効かないと理解し、高圧で隅々まで洗い、十分に乾燥させてから消毒する。母豚を入れる前に空ける期間をとり、きれいな場所（分娩舎）から汚れた場所への一方通行を自ら守って、汚れの往来を防ぐ。","level5":"消毒液の特性（汚れがあると効かない・効きにくい病原がある 等）と、対象の病原・温度・作用時間をふまえて、薬剤と希釈を選べる。豚を全頭出して洗浄・消毒し、まとめて入れ替える方式を計画的に運用し、消毒記録（日時・薬剤・濃度）を残して効果を検証し、防疫の手順を新人に指導できる。"},{"no":"分-6","name":"環境管理（温度・湿度・換気・保温灯の調整）","kanten":"母豚と子豚で適温が異なることをふまえ、保温灯・換気・冷却の工夫を、季節と子豚の発育に合わせて調整できるか。","level1":"保温灯をつけ忘れる、母豚向けと子豚向けの適温の違いを理解せず放置する。すきま風・換気の不良・刺激臭のガスに気づかず、子豚の寒さや母豚の暑さを見落とす。","level2":"指示があれば保温灯のオンオフや温度の確認はできるが、設定の目安があいまいで見落としが多い。換気量や湿度の調整、暑熱・寒冷への対応の判断は他者まかせ。","level3":"指示があれば、母豚のいる場所と子豚の保温場所のそれぞれの適温を目安に保温灯やヒーターを調整し、温度計を確かめられる。強い臭気やすきま風など、目視・体感できる異常に気づける。","level4":"指示がなくても、子豚の保温灯やマットを発育につれて段階的に弱め、天候に合わせて温度を調整する。子豚の集まり方（寒いと密集、暑いと分散）や呼吸の様子から寒暑を読み取り、暑い時は母豚に水を垂らして冷やす、寒い時は風を防いで温めるなど、適切な初期対応ができる。換気は臭気がこもらないよう配慮する。","level5":"子豚は冷えやすく、授乳中の母豚は体が熱くなりやすいという相反する要求を両立させる重要性を理解し、保温・換気・冷却のバランスを微調整できる。暑熱の程度や母豚の呼吸（速く浅い呼吸は暑熱に注意）を目安に対策を強め、設定や記録を残して改善し、適切な温度管理の考え方を新人に指導できる。"},{"no":"分-7","name":"異常の早期発見と報告（疾病・事故・死亡の早期察知と報連相）","kanten":"母豚・子豚の疾病・負傷・死亡を早期に発見し、緊急度を見極めて、的確に報告・連絡・相談できるか。","level1":"高熱・耳や皮膚の紫色化・急死・圧死・新生子豚の下痢などの異常を見ても気づかない、または気づいても報告せず放置する。後に判明して対応が大きく遅れる。","level2":"指示があれば異常に気づけるが、見落としや報告の遅れが多い。緊急か経過観察かの判断ができず、誰に何を伝えるかも他者まかせで、報告・連絡・相談が不十分。","level3":"指示があれば、明らかな異常（飼料を食べない、高熱、水様の下痢、胎盤の残留、死亡・圧死）を見つけ、上長へ報告できる。目に見える事実を確かめ、伝えるべき内容をひと通り報告できる。","level4":"指示がなくても日頃から見回って早期に異常へ気づき、発熱を疑えば体温を測定し、平常より高ければ分娩後の体調不良を疑うなど、緊急度を見極める。耳や皮膚の紫色化・急死、新生子豚の下痢が同じ腹や隣の囲いに広がるなどの重い兆候は、直ちに上長へ連絡し、隔離・初期対応を併せて行う。","level5":"様子から疾病の可能性を知識で見立て、隔離・手当ての相談・経過観察を自ら判断して動ける。発生事項（日時・症状・頭数・経過）を正しく記録して再発防止・改善につなげ、誰に・何を・どの程度の緊急度で報告すべきかの基準を新人に指導できる。"}]},{"key":"stall","sheet":"ストール舎","scale":"業務","items":[{"no":"ス-1","name":"発情発見・種付けのタイミング（発情観察、人工授精・交配の的確さとタイミング）","kanten":"母豚の陰部の腫れ・赤み・粘液、他の豚に乗りかかる動き、背中を押すと静止する発情の兆候、雄豚を用いた確認、離乳からの経過日数の記録をふまえ、種付けの適期を見極めて実施できるか。","level1":"母豚の陰部が腫れて赤くなったり粘液が出ても、発情と気づけない。背中を押して静止するか確かめる手順もあいまいで、兆候を見落とす。種付けの時期が判断できず、実施の可否は毎回指示や補助を要する。","level2":"指示があれば陰部の変化や、母豚が他の豚に乗りかかる動きには気づくが、雄豚を近づけて背中を押し、静止するかを確かめる確認が不十分で、一部しか把握できない。種付けの時期の判断は他者任せで、適期を外すことが多い。","level3":"指示があれば朝夕など決まった時間に発情を見回り、陰部の腫れ・粘液や、背中を押すと静止する兆候を確かめられる。指示されたタイミングで一通りの種付け作業ができる。","level4":"指示がなくても、発情の見込み日を周期や離乳からの経過日数で予測し重点的に観察する。静止する兆候を確かめてから適切な間隔をおいて種付けする。初産の母豚と経産の母豚とで適期に差があることをふまえ、雄豚を前に置いて背中を押し、落ち着かせて実施するなど丁寧に行える。","level5":"排卵が発情開始からしばらく経って起こり、経産の母豚では遅くなる体の仕組みを正しく理解する。発情の強さや持続の長さ（初産か経産かで異なる）を見て、種付けの回数や間隔を細かく調整できる。確実な受胎を目標に成績をふまえ自らの手順を見直し、発情の再発する割合や夏場に発情が弱まることも考慮して記録・判断し、同僚や新人に指導できる。"},{"no":"ス-2","name":"妊娠鑑定・再発チェック（不受胎・流産の早期発見、再種付けの管理）","kanten":"種付けから一定期間後の発情の再発の有無の観察、超音波による胎子の袋や心拍の確認、不受胎の母豚や流産の早期発見、再種付けの段取りができるか。","level1":"発情の再発の確認を怠り、不受胎の母豚を妊娠と取り違える。超音波の当て方もあいまいで胎子の袋を確認できず、不受胎や流産を見逃すため毎回補助を要する。","level2":"指示があれば発情の再発予定日に観察するが見落としが多く、受胎の有無の判断や再種付けの段取りは他者任せ。流産の早期発見ができないことがある。","level3":"指示に従い、種付けから一定期間後に発情の再発の有無を確かめ、超音波を母豚の右下腹部に当てて胎子の袋や心拍を確認できる。不受胎や流産の目立つ兆候には気づける。","level4":"指示がなくても発情周期に合わせて再発の見込み日を予測し重点的に観察し、種付け後の適期に超音波で複数回確認する。発情の再発する母豚が多ければ精液の質・種付けの時期・自らの手順を疑い、不受胎の母豚を速やかに再種付けへ回せる。","level5":"種付けからの経過が短すぎると、受胎していても不受胎と判定される場合があるため、日をおいて再確認するなど、確実に判別できる時期を理解している。真の妊娠とまぎらわしい状態（子宮に膿がたまる不調など）を見分け、不受胎・流産の生じやすさの傾向をふまえ原因への対処・記録を検討し、同僚や新人に指導できる。"},{"no":"ス-3","name":"母豚の体況管理（体格・栄養状態の見分け、給餌量の調整、やせすぎ・過肥の防止）","kanten":"母豚の体格・栄養状態（やせ・標準・過肥）を腰や背・肋骨に触れて見分け、妊娠の時期に応じて飼料の量を加減し、やせすぎ・過肥を防げるか。","level1":"やせすぎ・過肥を見ても判断できず、体格を見る部位も分からない。飼料の量を加減できず、栄養状態を放置する。","level2":"指示があれば極端なやせや過肥には気づくが、体格を段階で見分けるのがあいまいで、飼料を増減する判断は他者任せ。個体に応じた加減に漏れが多い。","level3":"指示があれば体格を段階で見分け、腰や背・肋骨に触れて脂肪のつき方を確かめられる。やせすぎや過肥を見つけられる。","level4":"指示がなくても妊娠初期と分娩前に体格を確認し、適正な状態を保つよう一頭ごとに飼料の量を加減する。妊娠の初期・中期・後期で飼料量を増減し、やせすぎ・過肥を防ぐ。","level5":"背の脂肪の厚みを定められた部位で測定して客観的に見分け、過肥は分娩を重くして食欲を落とし、やせすぎは産子数を減らし泌乳を悪くすることを理解する。泌乳期にやせさせすぎると次の分娩成績に影響することを見越して先回りで細かく加減し、記録して改善し、同僚や新人に指導できる。"},{"no":"ス-4","name":"給餌・給水管理（飼料の種類・量の管理、給水器の点検）","kanten":"妊娠の時期に応じた飼料の種類・量、食べ残しの確認、給水器の水の出と量の点検、飲み水を十分に確保できるか。","level1":"飼料の種類や量を取り違え、給水器の水の出が悪くても気づかず放置する。食べ残しや水切れに気づけず、飼料の量を加減できない。","level2":"指示があれば定められた量を給与できるが、妊娠の時期ごとの使い分けや給水器の点検に漏れが多く、過不足の判断は他者任せ。","level3":"指示があれば妊娠の時期に応じて飼料の量を変えて給与し（初期・中期・後期で量を変える）、給水器から水が出ているかを確かめられる。","level4":"指示がなくても飼料の食べ具合（食べ残しの有無）を毎日確かめ、給水器の水の出を点検する。妊娠中の母豚に水切れを生じさせず、泌乳中の母豚には多く要する飲み水を十分に用意し、暑い時期は涼しい朝夕に給与時間をずらすなどの工夫ができる。","level5":"飼料の栄養の内容や、暑い時期は冷たい水が食欲の維持に役立つことを理解し、食べ具合・体格・産子数をふまえ飼料の量を細かく加減する。食べ残しや飲水量を記録し、給与方法の改善を提案し、同僚や新人に指導できる。"},{"no":"ス-5","name":"母豚の健康観察（足・蹄・乳房・陰部の異常、足を引きずる歩き方の確認）","kanten":"足や歩き方（足を引きずらないか）、乳房（腫れ・泌乳）、陰部の異常な分泌物、飼料の食べ具合・水の出方を確認し、熱っぽければ体温を測り平熱より高くないか確かめられるか。","level1":"足を引きずる、乳房の腫れ、陰部の異常な分泌物を見ても気づかず放置する。観察すべき部位が分からず、常に指示を要する。","level2":"指示があれば足の引きずりや食べ残しには気づくが、乳房や陰部の分泌物の確認に漏れが多く、原因の究明は他者任せ。","level3":"指示があれば毎日見回り、食べ残し・下痢・元気のなさ・足を引きずる歩き方・乳房の張り・陰部の分泌物など、目に見える状態を確かめられる。","level4":"指示がなくても毎日見回り、熱っぽければ体温を測り平熱より高くないか確かめる（高ければ、分娩後なら乳房の腫れ・熱っぽさ・泌乳不良といった分娩後の体調不良、妊娠中なら疾病を疑う）。飼料の食べ具合・水の出方・泌乳の偏りの有無・足の踏ん張りまで確かめ、原因を探る処置ができる。","level5":"悪臭や膿のような陰部の分泌物、足を引きずる様子を正しく読み取り、処置・経過観察・隔離・上長への報告を自ら判断する。分娩後に排出されるはずのもの（胎盤）が残っていないか、子豚が乳を十分に吸えて育っているかまで関連づけて観察し、記録して改善し、同僚や新人に指導できる。"},{"no":"ス-6","name":"衛生管理・消毒（ストール清掃、器具消毒、防疫意識）","kanten":"ストールの清掃・糞の片づけ、種付け器具の消毒、「洗う→消毒する→乾かす」の基本の徹底、人や物の動線・病原を持ち込まない意識があるか。","level1":"清掃や消毒が不十分で、糞や食べ残しが残ったまま、器具も洗わず使い回すなど、病原を持ち込まない意識が低く、不衛生な状態を放置する。","level2":"指示があれば清掃はするが、洗う→消毒する→乾かすの手順や消毒薬の使い分けに漏れが多く、消毒の要否の判断は他者任せ。","level3":"指示があればストールの清掃・糞の片づけを行い、「洗う→消毒する→乾かす」の基本に沿って種付け器具を消毒できる。汚れの残りに気づける。","level4":"指示がなくても毎日清掃・消毒し、精液や種付けの管などの器具を清潔に扱う。汚れが残ると消毒が効きにくいことをふまえ高圧の水で十分に洗い、消毒薬の希釈やつけ置き時間を守る。","level5":"複数の消毒薬を、対象の病原や汚れの程度・温度に応じて使い分け、清潔な場所から汚れた場所への一方通行など、病原を持ち込まない動線の意味を理解する。消毒の記録（日時・薬剤・希釈・対象）を残し、手順を改善し、同僚や新人に指導できる。"},{"no":"ス-7","name":"異常の早期発見と報告（疾病・事故・発情戻りの早期察知と報連相）","kanten":"発情の再発・流産・不受胎・疾病・事故を早期に察知し、まず処置を行い、いつ・どの母豚に・どのような状態かを明確に報告・連絡・相談できるか。","level1":"発情の再発・流産・疾病・事故などの異常を見ても気づかず、報告もしないため対応が遅れる。報告すべき内容が分からず、見落としが多い。","level2":"指示があれば異常に気づくが、報告が遅く内容も不十分で、その後の判断・対応は他者任せ。","level3":"指示があれば発情の再発・食欲不振・足の引きずり・流産・陰部の分泌物などの異常を確かめ、いつ・どの母豚かを添えて上長へ報告できる。","level4":"指示がなくても毎日の見回りで異常を早期に察知し、体温の測定や患部の確認といった処置を行ったうえで、いつ・どの母豚に・どのような状態が出たかを具体的に報告する。発情の再発する母豚の増加や事故の傾向にも自ら気づく。","level5":"流産や、生まれずに固まってしまった子、発情の再発が繰り返し多いことなどから、繁殖に関わる疾病の可能性を見立て、隔離・記録・上長への報告や連携を自ら判断する。報告・連絡・相談の仕組みや確認方法を改善し、新人に指導できる。"}]},{"key":"finish","sheet":"肥育舎","scale":"業務","items":[{"no":"肥-1","name":"飼料・給餌管理（飼料切替の段取り、給餌器の調整、残飼・こぼれの管理）","kanten":"発育段階に応じた飼料の切り替えのやり方、給餌器から出る量の調整、食べ残しや床へのこぼれの確認を行えているか。","level1":"指示しても飼料の切り替えや給餌器の調整ができず、給餌器の食べ残しや床へのこぼれを放置する。発育段階の前後で飼料を取り違える、徐々に慣らさず急に切り替えて消化器の不調を招くなど、雑で危険な扱いが見られる。","level2":"言われれば給餌や食べ残しの片づけはある程度できるが、切り替えの時期や、数日かけて少しずつ混ぜながら変える手順を忘れがちで、給餌器の詰まり・出る量・床のこぼれの確認に漏れが多い。増減の判断は他者任せ。","level3":"指示があれば発育段階に応じた飼料の切り替え（育ちはじめは栄養を多めに、仕上げは控えめの飼料へ）を一通り行え、給餌器の詰まり・食べ残しの増加・床へのこぼれなど目に見える点を確認できる。","level4":"指示がなくても毎日給餌器を確認し、食べ残しが増えていれば食欲低下の原因（暑さ・体調不良・飼料の傷み）を探る。飼料の切り替えは数日かけて少しずつ混ぜながら行い、給餌器から出る量を調整してこぼれを減らす対応ができる。","level5":"飼料を与えすぎると過肥になり肉質が落ちるなど、給餌の意味を正しく理解し、食べ具合や発育に合わせて量を細かく調整する。食べ残した量や、増体に要した飼料の量を記録して改善につなげ、切り替えの手順や給餌器の調整を自ら判断して上長に報告し、同僚や新人に指導できる。"},{"no":"肥-2","name":"飲水・給水設備の管理（ニップルの点検、水量・水質の確認）","kanten":"給水器（ニップル）が正常に出るか・出る量の点検、飲水量・水温・水の清浄さを確認できているか。","level1":"給水器の点検を行わず、水の出が悪い・詰まっている状態を放置する。給水の止まった部屋や水漏れに気づかず、豚が飲水できず衰弱する・採食しなくなる事態を見落とす。","level2":"言われれば給水器を確かめるが、部屋ごと・各所の確認や出る量の点検に漏れが多く、水温や清浄さまで気が回らない。確認は指示を待ってから動く。","level3":"指示があれば個々の給水器を実際に作動させて出水を確かめ、詰まり・水漏れ・出の悪さなど目に見える不具合を確認できる。","level4":"指示がなくても毎日すべての給水器の出る量を確かめ、出が悪ければ清掃や高さの調整を行う。豚が十分に飲水できるようにし、冷たすぎずぬるすぎない水温に配慮する対応ができる。","level5":"水は体の大部分を占める最も重要な栄養と理解し、飲水量の減少を体調不良や暑さの兆候と判断する。随時水の清浄さ（汚れの有無）を調べて記録・管理し、設備の点検と水管理を自ら判断して上長に報告でき、新人に指導できる。"},{"no":"肥-3","name":"増体・発育の観察（成長のばらつき、発育不良豚の選別と対応）","kanten":"同一部屋内の体格のばらつきを把握し、発育の悪い豚・やせた豚を選び出して原因を探れているか。","level1":"発育の悪い豚や体格のばらつきに気づかず放置する。やせた豚や明らかに発育の遅れた豚を見落とし、部屋全体の発育状況を把握できない。","level2":"言われればやせた豚を選び出せるが、部屋全体のばらつきの把握や、発育の悪い豚を別室（治療部屋）へ移すことに漏れが多く、対応の判断は他者任せ。","level3":"指示があれば部屋を観察し、発育のばらつきや、明らかに発育が悪い・やせている豚を確認できる。","level4":"指示がなくても日頃から体格を観察し、発育の遅れた豚を治療部屋へ選別する。原因（体調不良・飼料の取り合い・給餌スペースの不足・群内の優劣）を探り、群の組み替えや個別管理などの対応ができる。","level5":"計画的に育成する意味を理解し、体重を測定して部屋内の体格をそろえる。出荷時期や目標体重に照らして発育の遅れの原因を調べて改善し、選別の目安を記録して上長に報告し、新人に指導できる。"},{"no":"肥-4","name":"健康観察・疾病対応（呼吸器・消化器症状、尾かじり等の早期発見と対応）","kanten":"せき・腹部を使った苦しそうな呼吸・下痢・元気のなさ・尾をかじる行動などを早めに発見し、隔離・手当て・報告といった初期対応を行えているか。","level1":"せき・下痢・尾かじりなどの兆候を見落として放置する。元気のない豚や衰弱した豚に気づかず、手遅れを招く危険な見落としがある。","level2":"言われれば不調の豚を見つけられるが、せきの頻度・下痢便の様子・体の傷など個体ごとの確認に漏れが多く、隔離・手当て・報告の判断は他者任せ。","level3":"指示があればせき・くしゃみ・腹部を使った苦しそうな呼吸・下痢・採食しない・元気がない・尾をかじられた傷など、目に見える兆候を確認できる。","level4":"指示がなくても毎日見回り、発熱が疑われれば体温を測って平熱より高くないか確かめる。安静時の呼吸が普段より速いことや腹部を使った呼吸を異常の兆候ととらえ、不調の豚を別室（治療部屋）へ移して個別管理する対応ができる。","level5":"兆候を正しく読み取り（せきの継続・血の混じった便など）、手当て・経過観察・隔離・上長への報告を自ら判断する。尾かじりは加害個体を特定して分け、環境要因（換気不足・過密・飼料不足）を是正する。観察結果を記録し、新人に指導できる。"},{"no":"肥-5","name":"出荷管理（出荷適期の判断、体重測定、選別・積込の段取り）","kanten":"出荷適期の見きわめ・体重測定、出荷前の絶食の段取りや、薬剤使用後に出荷を控える期間の確認、豚を落ち着いて選別・積み込む扱いができているか。","level1":"出荷の頃合いを見きわめられず、体重も測らずに規格に合わない豚を出荷する。乱暴に追い立てたり電気棒を多用したりして豚を傷つける危険な扱いがある。","level2":"言われれば選別や積み込みを手伝えるが、体重の確認・薬剤使用後に出荷を控える期間・出荷前の絶食の段取りに漏れが多く、頃合いや除外の判断は他者任せ。","level3":"指示があれば体重測定と外観の確認で出荷適期の豚を選び、けがや疾病のある豚を除外できる。","level4":"指示がなくても出荷前に所定の時間飼料を止め（水は自由に飲ませる）、薬剤使用後に出荷を控える期間を確認する。追い板で少しずつ静かに追い、電気棒を避け、ゆるやかな傾斜の通路で誘導する対応ができる。","level5":"肉質を落とさないことや、薬剤使用後の期間を確実に守る意味を理解して計画的に出荷する。耳標番号・投薬記録・体重を出荷リストで管理・記録し、季節への配慮（夏は早朝・散水、過密を避けた積み込み）まで判断して、上長に報告し新人に指導できる。"},{"no":"肥-6","name":"衛生管理・消毒（豚房清掃、オールイン・オールアウト、防疫意識）","kanten":"洗浄・消毒の手順を守れているか、豚を全頭出して洗浄・消毒し、空けてからまとめて入れ替えるやり方での空け期間、作業動線と病原を持ち込まない意識があるか。","level1":"部屋の清掃や消毒の手順を理解しておらず、ふん尿・飼料の食べ残しなどの汚れを残したまま消毒剤をまく。空け期間を守らずに豚を入れるなど、病原を持ち込まない意識がない。","level2":"言われれば清掃するが、つけ置き・高圧洗浄・乾燥の各工程や、消毒剤の希釈・接触時間を守ることに漏れが多く、汚れの取り残しがある。","level3":"指示があれば「ふんを取る→洗う→消毒する」の基本手順で部屋を清掃し、汚れの残りなど目に見える点を確認できる。","level4":"指示がなくても一連の手順（ふんを取る→粗洗い→つけ置き→高圧洗浄→乾燥→消毒→乾燥）を行い、消毒の前に汚れをしっかり落とす。豚を全頭出して洗浄・消毒し、空け期間を十分にとってまとめて入れ替えるやり方を守り、作業は清浄な所から汚れた所への一方通行で動く。","level5":"洗浄してから消毒し乾燥させる基本と、消毒剤の性質（汚れが残ると効かなくなる等）を理解し、対象の病原に応じて消毒剤を選ぶ。洗浄の仕上がりを確かめて効果を見極め、消毒の記録（日時・薬剤・希釈濃度・消毒箇所）を残して改善し、新人に指導できる。"},{"no":"肥-7","name":"環境管理（温度・湿度・換気・飼養密度の調整）","kanten":"定めた温度・湿り具合（湿度）を保つこと、換気量や空気の汚れ（鼻をつくにおい）、過密の度合い（飼養頭数）の調整を行えているか。","level1":"温度計や鼻をつくにおいに気を配らず、暑さ・寒さ・過密・換気の悪さを放置する。豚が固まって寄り集まったり、苦しそうに浅く速い呼吸をしていても気づかず対応できない。","level2":"言われれば温度計を確認するが、換気の調整・過密の度合い・空気の汚れの確認に漏れが多く、調整の判断は他者任せ。","level3":"指示があれば温度計を確認し、体が小さい時期は高め・出荷体重に近づくほど低めという目安で温度を保ち、過密や換気の悪さなど目に見える点を確認できる。","level4":"指示がなくても温度・湿り具合・換気を毎日調整し、安静時の呼吸が普段より速いことや鼻をつくにおいを感じ取って換気を強める。過密にならない頭数を守り、暑い時は散水・送風を合わせて行う対応ができる。","level5":"暑いと採食量が落ちて発育が鈍る等の意味や、蒸し暑さが増した時に対策を強める必要を理解して環境を細かく調整する。季節に合わせて換気の最小と最大を見据えて管理し、記録して改善し、上長に報告して新人に指導できる。"}]},{"key":"nursery","sheet":"子豚舎（離乳舎）","scale":"業務","items":[{"no":"子-1","name":"離乳豚の導入・馴致（移動時のストレス軽減、給餌・給水への誘導）","kanten":"移動直後の子豚をよく観察し、飼料と水の場所まで誘導し、体格をそろえた群分けができるか。","level1":"指示があっても子豚を乱暴に追い立て、飼料や水の場所を教えずに放置する。母豚からの分離・飼料の変化・移動・群の組み替えといった負担が重なることを理解しておらず、隅でうずくまる子豚や水を飲めていない子豚に気づかない。","level2":"指示があれば水飲み口に口を当てて飲み方を教えるが、抜けが多い。体格の異なる子豚を同じ群に混ぜてしまい、はじかれて弱る子豚が出ても気づかない。誘導が適切かどうかの判断は他者任せ。","level3":"指示があれば静かに追い込み、水飲み口と飼料箱の場所まで子豚を誘導し、体格の近い子豚同士で適切な規模の群を編成できる。どの子豚も無理なく採食できる飼料箱の幅を確保し、飼料や水に近づかない子豚を目視で確認できる。","level4":"指示がなくても、導入後しばらくは採食しない子豚を重点的に観察し、水でふやかした飼料や手からの給餌で立ち上げる。群を混ぜる際は夕方の暗い時間帯に行って争いを抑え、各水飲み口の出方・水量・高さまで自ら点検し、うずくまりや水分不足の兆候を探って早めに対処する。","level5":"離乳時の発育状態を目安に立ち上がりの良否を見分け、弱い子豚の別飼い・群の組み替え・記録まで自ら判断する。導入後に衰弱する子豚を減らす誘導法や群分けの工夫を提案し、追い込みや飼料・水への誘導のやり方を新人に指導できる。"},{"no":"子-2","name":"飼料・給餌管理（離乳食の切替、少量多回給与、食い込みの確認）","kanten":"離乳用の飼料を段階的に分け、少量を複数回に分けて給与し、豚房ごと・個体ごとの採食状況を確認できるか。","level1":"指示があっても飼料を一度に大量に与え、古い飼料の残りや傷み・カビに気づかない。離乳直後に急に次段階の飼料へ切り替えるなど順序を無視し、消化器の不調や下痢を生じさせる。","level2":"指示があれば少量ずつ与えるが回数や量が安定せず、初期の飼料から次の飼料へ急に切り替えて消化器の不調を生じさせる。個体ごと・豚房ごとの採食状況の差に気づけず、判断は他者任せ。","level3":"指示に従い、消化のよい離乳用飼料を少量ずつ複数回に分けて与え、数日かけて混ぜながら段階を進められる。飼料箱の食べ残しや飼料の汚れを確認し、採食状況の悪い豚房を目視で把握できる。","level4":"指示がなくても毎回の採食状況を観察し、採食しない子豚には手からの給餌や水でふやかすなどで対応する。発育に合わせて飼料の栄養を段階的に下げる切り替えを意識して時期を見極め、採食量が落ちれば飼料の鮮度・水の出・温度・体調まで原因を探る。","level5":"採食量が減った際、その原因が疾病か・暑熱や寒冷など環境か・飼料の質かを切り分け、給与量・回数・飼料の段階を自ら少しずつ調整する。離乳後の下痢を抑える給与法を提案し、少量多回給与のコツや段階の進め方を記録に基づき新人に指導できる。"},{"no":"子-3","name":"飲水管理（給水器の高さ・水量、脱水の防止）","kanten":"水飲み口の高さ・水量・出方を点検し、子豚が飲水できているか・水分が足りているかを確認できるか。","level1":"指示があっても水飲み口から水が出ているか確かめず、詰まりや高さの不適合で飲めない状態を放置する。水分不足でうずくまる子豚に気づかない。","level2":"指示があれば水飲み口を触って確かめるが、高さの調整や水量の確認はせず、飲水できていない豚房や水分不足の兆候を見落としやすい。","level3":"指示があれば水飲み口の高さを子豚の肩の位置に合わせ、水の出方や詰まりを点検できる。眼の落ちくぼみ・皮膚をつまんでも戻りが遅いなど、水分不足の兆候を目視で確認できる。","level4":"指示がなくても毎日すべての水飲み口で水が出るか・スムーズに出るか・出が悪くないかを確かめ、下痢が出た際は水分と塩分の補給を意識する。飲水量の低下に気づけば水の温度・勢い・詰まりまで原因を探る。","level5":"下痢や暑熱で水分が不足する危険を見極め、塩分の追加や水飲み口の増設・高さの調整といった対応を自ら判断して行う。水の清浄さや出水量の点検を記録して改善につなげ、飲水管理の要点を新人に指導できる。"},{"no":"子-4","name":"子豚の健康観察（下痢・呼吸器症状・削痩の早期発見）","kanten":"糞・呼吸・活力・体つきを観察し、下痢・咳や苦しそうな呼吸・やせを早期に発見し対処できるか。","level1":"指示があっても豚房を素通りし、下痢の糞や咳・腹を使った苦しそうな呼吸、やせた子豚を見落とす。気づいた異常も別飼いや連絡といった対処につなげられない。","level2":"指示があれば、明らかな下痢や活力の低下には気づくが、軽い咳・くしゃみや発育の遅れ・やせ始めなど初期の兆候は見落としやすく、対処の判断は他者任せ。","level3":"指示があれば毎日各豚房を観察し、水様の下痢・血の混じった下痢、咳・くしゃみ・鼻水、やせ・毛づやの悪さ・うずくまりなど目に見える状態を確認できる。離乳後しばらくは下痢が生じやすい時期だと理解している。","level4":"指示がなくても毎日すべての豚房を観察し、発熱が疑われれば体温を測定し平熱より高くないかで原因を探る。呼吸が速く荒くないか・糞の状態・飼料と水の摂取状況まで確認し、下痢の子豚は早めに別の豚房（手当て用）へ移す対処ができる。","level5":"観察した状態から疾病の見当をつけ（離乳後に下痢を起こす疾病や、咳・呼吸の疾病などを想定し）、治療・経過観察・別飼い・上長への報告まで自ら判断する。いつ・どのような状態が現れたかを記録して見直し、次の予防に役立て、観察の着眼点を新人に指導できる。"},{"no":"子-5","name":"発育不良豚のケア（はじかれ豚の管理、群分け・別飼いの対応）","kanten":"群に入れず採食できない子豚や発育の悪い子豚を見分け、適切な時期に群分け・別飼いを行い個別に世話できるか。","level1":"指示があっても発育の悪い子豚やはじかれた子豚を群に放置し、採食できず衰弱していくのを見過ごす。","level2":"指示があれば弱い子豚を別の豚房へ移すが、抜き出すのが遅く、やせが進んでから手を打つ。群分けの目安があいまいで、判断は他者任せ。","level3":"指示があれば体格の近い子豚同士で群をそろえ、はじかれて採食できない子豚や、やせ・毛づやの悪い発育不良の子豚を見分け、別飼い用の手当て豚房へ移して個別に世話できる。","level4":"指示がなくても日々、はじかれた子豚を早めに抜き出し、消化のよい飼料・手からの給餌・十分な保温など立て直しの世話を行う。回復の度合いを体格や採食状況で確かめ、原因（疾病・歯・群内の力関係）まで探る。","level5":"発育不良の原因を疾病・飼料・環境から切り分け、別飼い・投薬・経過観察・淘汰の判断を自ら行う。はじかれる子豚が出ないよう群編成や給与法で減らす工夫を提案し、立て直しの世話を新人に指導できる。"},{"no":"子-6","name":"環境管理（保温、温度ムラ・すきま風の防止、換気）","kanten":"舎内の温度・床の温度・すきま風・換気（鼻をつくにおいがこもっていないか）を点検し、子豚の様子から適温を保てるか。","level1":"指示があっても温度計を確認せず、寒さで折り重なってうずくまる、あるいは暑さでばらばらに伏せる子豚の様子を放置する。すきま風や換気の不良に気づかない。","level2":"指示があれば保温電球や換気を調整するが、適温の根拠があいまいで、温度ムラ・すきま風・鼻をつくにおいを見落としやすい。","level3":"指示があれば離乳直後の適温を目安に温度計を確認し、保温電球や床暖房で加温し、すきま風を防げる。子豚の伏せ方（折り重なる＝寒い、手足を伸ばして散らばる＝暑い）から体感温度を読める。","level4":"指示がなくても発育に合わせて段階的に設定温度を下げ、床を気温より暖かく保つ。鼻をつくにおいがこもらないよう換気とすきま風対策を両立させ、温度ムラの原因（すきま・送風機・敷きわら）を探って対処する。","level5":"発育の週齢に応じた適温の推移や、最低限必要な換気の意味を理解し、保温・換気・飼養密度を季節に合わせて段階的に調整する。子豚の様子から環境を読み取って改善・記録し、温度ムラやすきま風の対策を新人に指導できる。"},{"no":"子-7","name":"衛生管理・消毒（豚房清掃、オールイン・オールアウト、防疫意識）","kanten":"糞の除去→洗浄→乾燥→消毒の順序と、豚をまとめて入れ替えて洗浄・消毒する方式、作業者の動線・病原を持ち込まない意識を守れるか。","level1":"指示があっても糞を残したまま消毒液を散布する、空舎期間を取らずに次の群を入れるなど順序を無視し、糞や汚れが残ると消毒が効かないことを理解していない。","level2":"指示があれば洗浄・消毒はするが、乾燥・つけ置きの手順を省き、消毒液の希釈や空舎期間を守れないことが多い。作業者の動線や手指消毒への意識が薄い。","level3":"指示があれば、糞の除去→洗浄→乾燥→消毒の順で豚房を清掃し、豚をまとめて入れ替える方式で群を一斉に入れ替えられる。消毒液の希釈を守り、長靴や手指の消毒もできる。","level4":"指示がなくても、糞や汚れを十分に除去し、空舎期間を十分にとって洗浄・消毒・乾燥まで終わらせる。清浄な子豚舎から汚染区域への一方通行を守り、消毒液を対象に応じて選び、効くまでの時間を確保する。","level5":"「洗浄→消毒→乾燥」の重要性や、消毒液には汚れがあると効かないもの・効きにくい対象があることを理解し、薬剤や濃度を選べる。豚をまとめて入れ替える方式で疾病の持ち越しを断ち、消毒の記録や効果の確認で改善し、病原を持ち込まない手順を新人に指導できる。"}]},{"key":"attitude","sheet":"仕事への姿勢（全舎共通）","scale":"姿勢","items":[{"no":"仕-1","name":"時間厳守・出勤態度（始業前準備、遅刻欠勤、身だしなみ）","kanten":"始業時刻より前に出勤して準備を整えているか。長靴の消毒・専用作業着への着替え・手指の消毒など、病原の持ち込みを防ぐための手順を実行しているか。遅刻・欠勤の際に事前連絡をするか。爪・髪・服装が清潔か。あわせて、指示を待たず自ら動けているか、周囲へ声をかけているかを見る。","level1":"始業時刻に遅れることが多く、連絡のない遅刻・欠勤がある。長靴の消毒や専用作業着への着替えを怠り、その都度指示されなければ、病原の持ち込みを防ぐ手順や身だしなみを整えられない。","level2":"ぎりぎりの出勤や連絡漏れが時折あるが、注意されれば始業より早めに出勤し、作業着への着替え・長靴の消毒・手指の消毒を行う。身だしなみの乱れも、指摘されれば直す。","level3":"指示どおり始業時刻より前に出勤し、長靴の消毒・専用作業着への着替え・手指の消毒という手順を一通り実行できる。遅刻・欠勤の際は、始業前に自ら連絡できる。","level4":"指示がなくても始業より余裕をもって早めに出勤し、その日の段取りや道具・記録用紙を整える。長靴の消毒や着替えを毎回欠かさないなど、病原の持ち込みを防ごうとする意識が言動に表れている。体調不良の際も早めに連絡し、代替の対応を申し出る。","level5":"自ら進んで早めの準備や消毒（消毒液の汚れ・濁りを確認して入れ替える等）を行い、遅れがちな同僚や新人へ、出勤時刻・身だしなみ・消毒手順を具体的に助言する。職場全体の出勤規律と衛生意識を高めている。"},{"no":"仕-2","name":"報連相とチームワーク（情報共有、協力姿勢、引き継ぎの正確さ）","kanten":"体調の異常（発熱の様子・飼料を食べない・死亡・分娩の兆候・豚の脱柵 など）を、いかに早くもれなく上長や仲間へ伝え、相談しているか。引き継ぎノートや日報に、頭数・豚房・状態・実施した処置を正しく記録できているか。手が空いた際に手伝う姿勢があるか。指示を待たず動けるか、周囲へ働きかけているかを見る。","level1":"発熱の様子・飼料を食べない・死亡といった異常を見ても伝えず、自分で抱え込み、引き継ぎの漏れが多い。その都度確認して指示しなければ、情報を共有しない。","level2":"報告漏れや引き継ぎの抜けが時折あるが、指示されれば日報や引き継ぎノートに、頭数・豚房の番号・状態・実施した処置を記録して共有できる。","level3":"指示された事項（処置した豚の頭数・使用した薬剤の名称と残量・残っている作業・注意して観察すべき豚）について一通り報告・連絡・相談ができ、引き継ぎノートに記録して次の担当者へ引き渡せる。","level4":"指示がなくても気づいた異常をその場で伝えて相談し、引き継ぎの内容（投薬中の豚房・薬を止めてから出荷までの待機期間・注意して観察する豚 など）を、相手に伝わる形で正しく残そうとする姿勢が言動に表れている。手が空けば、忙しい同僚を自ら手伝う。","level5":"引き継ぎの書き方や報告の優先順位（緊急か通常か）を仲間とそろえるよう働きかけ、新人へ、伝えるべき異常の見分け方や記録の書き方を指導する。職場の情報共有とチーム連携の質を底上げしている。"},{"no":"仕-3","name":"改善意識・学習姿勢（提案、振り返り、新しい知識の習得意欲）","kanten":"その日の作業を振り返って改善を提案するか。疑問点を確認するか。新しい知識（飼養管理・疾病・薬剤・衛生）を学ぼうとするか。指示を待たず動けるか、提案が具体的で観察できる事実にもとづくか、周囲へ広げているかを見る。","level1":"指示された作業をこなすだけで振り返りも疑問もなく、失敗しても原因を考えない。その都度促されなければ学ぼうとしない。","level2":"改善の気づきが時折あるが自らは動かず、指示されれば手順を見直したり、分からない用語（分娩後の体調不良・離乳に適した時期・薬を止めてから出荷までの待機期間 など）を確認したりする。","level3":"指示された範囲でその日の作業を振り返って疑問を質問し、教わった手順や目安（分娩室の適切な室温・薬剤の希釈方法 など）を覚えて次に活かそうとする。","level4":"指示がなくても作業の無駄や危険な箇所（人や豚の動線・転倒のしやすさ・薬剤の取り違え など）に気づいて改善案を出し、研修資料やマニュアルを自ら読み込むなど、学ぼうとする姿勢が言動から分かる。","level5":"試した改善を、観察できる結果（事故の発生しやすさ・離乳できた頭数・発育の状態・作業にかかった時間 など）で振り返ってチームに提案・共有し、新しい知識ややり方を勉強会などで同僚へ広め、職場の作業手順の見直しにつなげている。"}]}]</script>
 <script>
 /* ==============================================================
    多言語（UIテキストのみ。項目名はcfgに保存）
@@ -285,7 +322,9 @@ s5:'模範的',s4:'上回る',s3:'標準',s2:'要改善',s1:'要指導',
 addSec:'＋ セクション追加',addItem:'＋ 項目追加',saveCfg:'設定を保存',resetCfg:'初期設定に戻す',
 cfgSaved:'設定を保存しました',cfgReset:'初期設定に戻しました',cResetCfg:'評価項目を初期設定に戻しますか？',
 secName:'セクション名',itemName:'項目名',itemDesc:'説明文',
-expCfg:'⬇ 項目を書き出し（ファイル保存）',impCfg:'⬆ 項目を読み込み（ファイルから）',expHint:'別のPCへ評価項目を渡すには「書き出し」でファイルを保存し、そのファイルを相手のPCの「読み込み」で取り込みます。',cfgExported:'項目ファイルを書き出しました',cfgImported:'項目を読み込みました',cImpCfg:'現在の評価項目を、読み込むファイルの内容で上書きします。よろしいですか？',eImpCfg:'ファイルの形式が正しくありません'},
+expCfg:'⬇ 項目を書き出し（ファイル保存）',impCfg:'⬆ 項目を読み込み（ファイルから）',expHint:'別のPCへ評価項目を渡すには「書き出し」でファイルを保存し、そのファイルを相手のPCの「読み込み」で取り込みます。',cfgExported:'項目ファイルを書き出しました',cfgImported:'項目を読み込みました',cImpCfg:'現在の評価項目を、読み込むファイルの内容で上書きします。よろしいですか？',eImpCfg:'ファイルの形式が正しくありません',
+barnLbl:'🏠 豚舎',showCrit:'基準を見る（レベル1〜5）',hideCrit:'基準を閉じる',kantenLbl:'評価の観点',progDone:'採点済み',prevLbl:'前回',
+expAll:'⬇ 全データをバックアップ（評価＋項目）',impAll:'⬆ バックアップから復元',backupHint:'端末の故障や誤消去に備えて、全豚舎の評価データと項目を1ファイルに保存できます。復元では既存の記録は残り、新しい記録だけが追加されます。',tBackupExp:'バックアップを保存しました',tBackupImp:'復元しました',cImpAll:'バックアップを取り込みます。既存の記録は残り、新しい記録だけが追加されます（評価項目はファイルの内容で上書き）。よろしいですか？',tDraft:'前回の入力途中の内容を復元しました'},
 en:{appTitle:'HSS Evaluation System',tabIn:'Input',tabHi:'History',tabCh:'Charts',tabCfg:'Settings',
 labelDate:'Date',labelEvaluator:'Evaluator',labelEvaluatee:'Employee',
 phEv:'e.g. Taro Yamada',phEe:'e.g. Hanako Sato',overall:'Overall',phOv:'Overall assessment...',
@@ -301,7 +340,9 @@ s5:'Exemplary',s4:'Above',s3:'Standard',s2:'Improve',s1:'Urgent',
 addSec:'+ Add Section',addItem:'+ Add Item',saveCfg:'Save Settings',resetCfg:'Reset to Default',
 cfgSaved:'Settings saved',cfgReset:'Reset to default',cResetCfg:'Reset items to default?',
 secName:'Section name',itemName:'Item name',itemDesc:'Description',
-expCfg:'⬇ Export items (save file)',impCfg:'⬆ Import items (from file)',expHint:'To move items to another PC, use Export to save a file, then Import that file on the other PC.',cfgExported:'Items exported',cfgImported:'Items imported',cImpCfg:'This will overwrite the current evaluation items with the file contents. Continue?',eImpCfg:'Invalid file format'},
+expCfg:'⬇ Export items (save file)',impCfg:'⬆ Import items (from file)',expHint:'To move items to another PC, use Export to save a file, then Import that file on the other PC.',cfgExported:'Items exported',cfgImported:'Items imported',cImpCfg:'This will overwrite the current evaluation items with the file contents. Continue?',eImpCfg:'Invalid file format',
+barnLbl:'🏠 Barn',showCrit:'View criteria (Levels 1–5)',hideCrit:'Hide criteria',kantenLbl:'Assessment focus',progDone:'Scored',prevLbl:'Prev.',
+expAll:'⬇ Back up all data (records + items)',impAll:'⬆ Restore from backup',backupHint:'Save all barns\' records and items to one file in case the device fails. Restoring keeps existing records and only adds new ones.',tBackupExp:'Backup saved',tBackupImp:'Restored',cImpAll:'Import this backup? Existing records are kept and only new ones are added (items are overwritten). Continue?',tDraft:'Restored unsaved draft'},
 vi:{appTitle:'HSS Evaluation System',tabIn:'Nhập',tabHi:'Lịch sử',tabCh:'Biểu đồ',tabCfg:'Cài đặt',
 labelDate:'Ngày',labelEvaluator:'Người ĐG',labelEvaluatee:'Nhân viên',
 phEv:'VD: Yamada',phEe:'VD: Sato',overall:'Nhận xét chung',phOv:'Đánh giá tổng thể...',
@@ -317,7 +358,9 @@ s5:'Xuất sắc',s4:'Tốt',s3:'Đạt',s2:'Cải thiện',s1:'Khẩn cấp',
 addSec:'+ Thêm mục',addItem:'+ Thêm',saveCfg:'Lưu cài đặt',resetCfg:'Mặc định',
 cfgSaved:'Đã lưu',cfgReset:'Đã đặt lại',cResetCfg:'Đặt lại?',
 secName:'Tên mục',itemName:'Tên',itemDesc:'Mô tả',
-expCfg:'⬇ Xuất hạng mục (lưu file)',impCfg:'⬆ Nhập hạng mục (từ file)',expHint:'Để chuyển hạng mục sang PC khác: dùng "Xuất" để lưu file, rồi "Nhập" file đó trên PC kia.',cfgExported:'Đã xuất file',cfgImported:'Đã nhập hạng mục',cImpCfg:'Thao tác này sẽ ghi đè hạng mục hiện tại bằng nội dung file. Tiếp tục?',eImpCfg:'Định dạng file không hợp lệ'},
+expCfg:'⬇ Xuất hạng mục (lưu file)',impCfg:'⬆ Nhập hạng mục (từ file)',expHint:'Để chuyển hạng mục sang PC khác: dùng "Xuất" để lưu file, rồi "Nhập" file đó trên PC kia.',cfgExported:'Đã xuất file',cfgImported:'Đã nhập hạng mục',cImpCfg:'Thao tác này sẽ ghi đè hạng mục hiện tại bằng nội dung file. Tiếp tục?',eImpCfg:'Định dạng file không hợp lệ',
+barnLbl:'🏠 Chuồng',showCrit:'Xem tiêu chuẩn (Mức 1–5)',hideCrit:'Đóng tiêu chuẩn',kantenLbl:'Trọng tâm đánh giá',progDone:'Đã chấm',prevLbl:'Lần trước',
+expAll:'⬇ Sao lưu toàn bộ dữ liệu',impAll:'⬆ Khôi phục từ bản sao lưu',backupHint:'Lưu toàn bộ dữ liệu đánh giá và hạng mục của các chuồng vào một file để đề phòng mất dữ liệu. Khi khôi phục, dữ liệu hiện có được giữ nguyên, chỉ thêm dữ liệu mới.',tBackupExp:'Đã sao lưu',tBackupImp:'Đã khôi phục',cImpAll:'Nhập bản sao lưu? Dữ liệu hiện có được giữ nguyên, chỉ thêm dữ liệu mới (hạng mục sẽ bị ghi đè). Tiếp tục?',tDraft:'Đã khôi phục bản nháp'},
 id:{appTitle:'HSS Evaluation System',tabIn:'Input',tabHi:'Riwayat',tabCh:'Grafik',tabCfg:'Pengaturan',
 labelDate:'Tanggal',labelEvaluator:'Penilai',labelEvaluatee:'Karyawan',
 phEv:'Cth: Yamada',phEe:'Cth: Sato',overall:'Keseluruhan',phOv:'Penilaian...',
@@ -333,7 +376,9 @@ s5:'Teladan',s4:'Baik',s3:'Standar',s2:'Perbaikan',s1:'Mendesak',
 addSec:'+ Tambah Bagian',addItem:'+ Tambah',saveCfg:'Simpan',resetCfg:'Default',
 cfgSaved:'Tersimpan',cfgReset:'Direset',cResetCfg:'Reset?',
 secName:'Nama bagian',itemName:'Nama',itemDesc:'Deskripsi',
-expCfg:'⬇ Ekspor item (simpan file)',impCfg:'⬆ Impor item (dari file)',expHint:'Untuk memindahkan item ke PC lain: gunakan Ekspor untuk menyimpan file, lalu Impor file itu di PC lain.',cfgExported:'Item diekspor',cfgImported:'Item diimpor',cImpCfg:'Ini akan menimpa item penilaian saat ini dengan isi file. Lanjutkan?',eImpCfg:'Format file tidak valid'}
+expCfg:'⬇ Ekspor item (simpan file)',impCfg:'⬆ Impor item (dari file)',expHint:'Untuk memindahkan item ke PC lain: gunakan Ekspor untuk menyimpan file, lalu Impor file itu di PC lain.',cfgExported:'Item diekspor',cfgImported:'Item diimpor',cImpCfg:'Ini akan menimpa item penilaian saat ini dengan isi file. Lanjutkan?',eImpCfg:'Format file tidak valid',
+barnLbl:'🏠 Kandang',showCrit:'Lihat kriteria (Level 1–5)',hideCrit:'Tutup kriteria',kantenLbl:'Fokus penilaian',progDone:'Dinilai',prevLbl:'Sebelumnya',
+expAll:'⬇ Cadangkan semua data',impAll:'⬆ Pulihkan dari cadangan',backupHint:'Simpan semua data penilaian dan item ke satu file untuk berjaga-jaga. Pemulihan mempertahankan data yang ada dan hanya menambahkan yang baru.',tBackupExp:'Cadangan disimpan',tBackupImp:'Dipulihkan',cImpAll:'Impor cadangan? Data yang ada dipertahankan, hanya data baru yang ditambahkan (item akan ditimpa). Lanjutkan?',tDraft:'Draf dipulihkan'}
 };
 
 /* ==============================================================
@@ -393,11 +438,13 @@ const BKEY='pig_eval_active_barn';
 let activeBarn=localStorage.getItem(BKEY)||'farrow';
 if(!BARNS.some(b=>b.key===activeBarn)){activeBarn='farrow';localStorage.setItem(BKEY,activeBarn);}
 let SKEY,CKEY;
-function applyBarnKeys(){
-  // 分娩舎は既存データを引き継ぐため従来キーを使用、他舎は舎別キー
-  SKEY=activeBarn==='farrow'?'pig_farm_evaluation_v1':'pig_eval_'+activeBarn+'_data_v1';
-  CKEY=activeBarn==='farrow'?'pig_farm_eval_items_v1':'pig_eval_'+activeBarn+'_items_v1';
+// 分娩舎は既存データを引き継ぐため従来キーを使用、他舎は舎別キー
+function keysFor(key){
+  return key==='farrow'
+    ?{s:'pig_farm_evaluation_v1',c:'pig_farm_eval_items_v1'}
+    :{s:'pig_eval_'+key+'_data_v1',c:'pig_eval_'+key+'_items_v1'};
 }
+function applyBarnKeys(){const k=keysFor(activeBarn);SKEY=k.s;CKEY=k.c}
 applyBarnKeys();
 const LKEY='pig_farm_eval_lang';
 let lang=localStorage.getItem(LKEY)||'ja';
@@ -408,6 +455,27 @@ function t(k){return(TX[lang]||TX.ja)[k]||TX.ja[k]||k}
 function loadCfg(){try{const r=localStorage.getItem(CKEY);return r?JSON.parse(r):defaultCfg()}catch{return defaultCfg()}}
 function getItems(){return cfg.items}
 function getSections(){return cfg.sections}
+
+/* ==============================================================
+   評価基準（criteria-data.json を build_html.py で埋め込み）
+   デフォルト項目ID（item1〜7=舎別業務、item8〜10=仕事への姿勢）に対応。
+   利用者が追加したカスタム項目には基準がないためボタン非表示。
+   ============================================================== */
+let CRITERIA=[];
+try{CRITERIA=JSON.parse(document.getElementById('criteriaData').textContent)||[]}catch{CRITERIA=[]}
+function criteriaFor(itemId){
+  const m=/^item(\d+)$/.exec(itemId);if(!m)return null;
+  const n=+m[1];
+  if(n>=1&&n<=7){const b=CRITERIA.find(x=>x.key===activeBarn);return b&&b.items[n-1]||null}
+  if(n>=8&&n<=10){const a=CRITERIA.find(x=>x.key==='attitude');return a&&a.items[n-8]||null}
+  return null;
+}
+function toggleCrit(id){
+  const el=document.getElementById('crit-'+id),btn=document.getElementById('critb-'+id);
+  if(!el||!btn)return;
+  const open=el.classList.toggle('open');
+  btn.textContent=(open?'▲ ':'▼ ')+t(open?'hideCrit':'showCrit');
+}
 
 /* ==============================================================
    言語
@@ -425,9 +493,9 @@ function applyT(){
 let _fs=null;
 function saveSt(){_fs=collectForm()}
 function restoreSt(){if(!_fs)return;const d=_fs;getItems().forEach(it=>{
-  const sc=d.scores[it.id];if(sc){const b=document.querySelector('.sb[data-id="'+it.id+'"][data-s="'+sc+'"]');if(b){b.classList.add('sel');const c=document.getElementById('c-'+it.id);if(c)c.classList.add('scored')}}
+  const sc=d.scores[it.id];if(sc)setScoreUI(it.id,sc);
   const cm=d.comments[it.id];if(cm){const ta=document.querySelector('textarea[data-cid="'+it.id+'"]');if(ta)ta.value=cm}
-});_fs=null}
+});_fs=null;updProg()}
 
 /* ==============================================================
    初期化
@@ -436,8 +504,14 @@ document.addEventListener('DOMContentLoaded',()=>{
   document.getElementById('fDate').value=new Date().toISOString().split('T')[0];
   populateBarnSel();
   setLang(lang);
+  restoreDraft();
   window.addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.returnValue=''}});
   refreshSel();
+  // 進捗バーをヘッダー直下に固定
+  const fixProg=()=>{const p=document.querySelector('.prog');if(p)p.style.top=document.querySelector('.hdr').offsetHeight+'px'};
+  fixProg();window.addEventListener('resize',fixProg);
+  // PWA（GitHub Pages等のhttps配信時のみ）
+  if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('sw.js').catch(()=>{});
 });
 
 /* ==============================================================
@@ -453,19 +527,42 @@ function buildCards(){
     if(!secItems.length)return;
     h+=`<div class="stit">${sec.name}</div>`;
     secItems.forEach((it,ii)=>{
+      const cr=criteriaFor(it.id);
       h+=`<div class="cd ec" id="c-${it.id}">
         <div class="en">${sec.name.charAt(0)}-${ii+1}</div>
         <div class="enm">${esc(it.name)}</div>
         <div class="ed">${esc(it.desc)}</div>
-        <div class="sr">${[1,2,3,4,5].map(s=>`<button class="sb" data-id="${it.id}" data-s="${s}" onclick="pick('${it.id}',${s},this)">${s}<span class="sl">${t('s'+s)}</span></button>`).join('')}</div>
+        ${cr?`<button class="crit-tg" id="critb-${it.id}" onclick="toggleCrit('${it.id}')">▼ ${t('showCrit')}</button>
+        <div class="crit" id="crit-${it.id}">
+          <div class="crit-k"><b>${t('kantenLbl')}（${esc(cr.no)}）</b>${esc(cr.kanten)}</div>
+          ${[1,2,3,4,5].map(l=>`<div class="crit-lv" data-id="${it.id}" data-s="${l}" onclick="pick('${it.id}',${l})"><span class="crit-n sb${l}">${l}</span><div class="crit-t"><b>${t('s'+l)}</b>${esc(cr['level'+l])}</div></div>`).join('')}
+        </div>`:''}
+        <div class="sr">${[1,2,3,4,5].map(s=>`<button class="sb" data-id="${it.id}" data-s="${s}" onclick="pick('${it.id}',${s})">${s}<span class="sl">${t('s'+s)}</span></button>`).join('')}</div>
         <div class="clbl">${t('cmtLbl')}</div>
         <textarea data-cid="${it.id}" placeholder="${t('phCmt')}" oninput="onCh()"></textarea>
       </div>`;
     });
   });
   el.innerHTML=h;
+  updProg();
 }
-function pick(id,s,btn){btn.parentElement.querySelectorAll('.sb').forEach(b=>b.classList.remove('sel'));btn.classList.add('sel');document.getElementById('c-'+id).classList.add('scored');onCh()}
+/* スコア選択のUI反映（点数ボタン・基準リスト両方をハイライト） */
+function setScoreUI(id,s){
+  document.querySelectorAll('.sb[data-id="'+id+'"]').forEach(b=>b.classList.toggle('sel',+b.dataset.s===s));
+  document.querySelectorAll('.crit-lv[data-id="'+id+'"]').forEach(r=>r.classList.toggle('sel',+r.dataset.s===s));
+  const c=document.getElementById('c-'+id);if(c)c.classList.add('scored');
+}
+function pick(id,s){setScoreUI(id,s);onCh();updProg()}
+/* 採点進捗バー */
+function updProg(){
+  const f=document.getElementById('progF'),tx=document.getElementById('progT');
+  if(!f||!tx)return;
+  const total=getItems().length;
+  const done=document.querySelectorAll('#cards .ec.scored').length;
+  f.style.width=(total?Math.round(done/total*100):0)+'%';
+  f.classList.toggle('done',total>0&&done===total);
+  tx.textContent=t('progDone')+' '+done+'/'+total;
+}
 
 /* ==============================================================
    入力変更
@@ -518,26 +615,50 @@ function startEdit(id){
   document.getElementById('fEv').value=rec.evaluator;
   document.getElementById('fEe').value=rec.evaluatee;
   document.getElementById('fOv').value=rec.overall||'';
-  document.querySelectorAll('.sb.sel').forEach(b=>b.classList.remove('sel'));
+  document.querySelectorAll('.sb.sel,.crit-lv.sel').forEach(b=>b.classList.remove('sel'));
   document.querySelectorAll('.ec.scored').forEach(c=>c.classList.remove('scored'));
   getItems().forEach(it=>{
-    const sc=rec.scores[it.id];if(sc){const b=document.querySelector('.sb[data-id="'+it.id+'"][data-s="'+sc+'"]');if(b){b.classList.add('sel');document.getElementById('c-'+it.id).classList.add('scored')}}
+    const sc=rec.scores[it.id];if(sc)setScoreUI(it.id,sc);
     const ta=document.querySelector('textarea[data-cid="'+it.id+'"]');if(ta)ta.value=rec.comments[it.id]||'';
   });
   document.getElementById('editBar').classList.add('show');
   document.getElementById('btnSave').textContent=t('btnUpdate');
-  window.scrollTo({top:0,behavior:'smooth'});dirty=false;
+  window.scrollTo({top:0,behavior:'smooth'});dirty=false;updProg();
 }
 function cancelEdit(){if(dirty&&!confirm(t('cCEdit')))return;exitEdit();clearForm()}
 function exitEdit(){editId=null;document.getElementById('editBar').classList.remove('show');document.getElementById('btnSave').textContent=t('btnSave')}
 function doReset(){if(!confirm(t('cReset')))return;clearForm();if(editId)exitEdit();toast(t('tReset'))}
-function clearForm(){
+function clearForm(keepDraft){
   document.getElementById('fDate').value=new Date().toISOString().split('T')[0];
   ['fEv','fEe','fOv'].forEach(id=>document.getElementById(id).value='');
-  document.querySelectorAll('.sb.sel').forEach(b=>b.classList.remove('sel'));
+  document.querySelectorAll('.sb.sel,.crit-lv.sel').forEach(b=>b.classList.remove('sel'));
   document.querySelectorAll('.ec.scored').forEach(c=>c.classList.remove('scored'));
   document.querySelectorAll('.ec textarea').forEach(ta=>ta.value='');
-  localStorage.removeItem(SKEY+'_draft');dirty=false;
+  if(!keepDraft)localStorage.removeItem(SKEY+'_draft');
+  dirty=false;updProg();
+}
+/* 下書きの復元（リロード・豚舎切替後に入力途中の内容を戻す） */
+function restoreDraft(){
+  let d=null;try{d=JSON.parse(localStorage.getItem(SKEY+'_draft'))}catch{}
+  if(!d)return;
+  const hasContent=(d.evaluator||'').trim()||(d.evaluatee||'').trim()||(d.overall||'').trim()
+    ||Object.values(d.scores||{}).some(v=>v!=null)
+    ||Object.values(d.comments||{}).some(v=>(v||'').trim());
+  if(!hasContent)return;
+  if(d.date)document.getElementById('fDate').value=d.date;
+  document.getElementById('fEv').value=d.evaluator||'';
+  document.getElementById('fEe').value=d.evaluatee||'';
+  document.getElementById('fOv').value=d.overall||'';
+  getItems().forEach(it=>{
+    const sc=d.scores&&d.scores[it.id];if(sc)setScoreUI(it.id,sc);
+    const ta=document.querySelector('textarea[data-cid="'+it.id+'"]');if(ta)ta.value=(d.comments&&d.comments[it.id])||'';
+  });
+  if(d._editId&&getAll().some(e=>e.id===d._editId)){
+    editId=d._editId;
+    document.getElementById('editBar').classList.add('show');
+    document.getElementById('btnSave').textContent=t('btnUpdate');
+  }
+  updProg();toast(t('tDraft'));
 }
 
 /* ==============================================================
@@ -586,8 +707,9 @@ function setBarn(key){
   activeBarn=key;localStorage.setItem(BKEY,key);
   applyBarnKeys();
   cfg=loadCfg();
-  clearForm();
+  clearForm(true);
   applyT();buildCards();refreshSel();
+  restoreDraft();
   const cur=document.querySelector('.tabs button.on');
   if(cur&&cur.dataset.pg==='pgCfg')buildCfgUI();
   if(cur&&cur.dataset.pg==='pgHi')drawHist();
@@ -637,7 +759,7 @@ function doCSV(){
   let csv='\uFEFF'+hd.map(h=>`"${h}"`).join(',')+'\n';
   rows.forEach(r=>{csv+=r.map(c=>`"${c}"`).join(',')+'\n'});
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'}));
-  a.download='evaluation_'+new Date().toISOString().slice(0,10).replace(/-/g,'')+'.csv';a.click();toast(t('tCSV'));
+  a.download='evaluation_'+activeBarn+'_'+new Date().toISOString().slice(0,10).replace(/-/g,'')+'.csv';a.click();toast(t('tCSV'));
 }
 
 /* ==============================================================
@@ -654,9 +776,12 @@ function drawCharts(){
   const items=getItems();
   if(cL)cL.destroy();
   cL=new Chart(document.getElementById('cvL'),{type:'line',data:{labels:all.map(e=>e.date),datasets:[{label:t('chAvg'),data:all.map(e=>parseFloat(avg(e.scores))),borderColor:'#2e7d6f',backgroundColor:'rgba(46,125,111,.1)',fill:true,tension:.3,pointRadius:5,pointBackgroundColor:'#2e7d6f'}]},options:{responsive:true,maintainAspectRatio:false,scales:{y:{min:1,max:5,ticks:{stepSize:1}}},plugins:{legend:{display:false}}}});
-  const lat=all[all.length-1];
+  const lat=all[all.length-1],prev=all.length>1?all[all.length-2]:null;
   if(cR)cR.destroy();
-  cR=new Chart(document.getElementById('cvR'),{type:'radar',data:{labels:items.map(it=>{const n=it.name;return n.length>6?n.slice(0,6)+'…':n}),datasets:[{label:lat.date,data:items.map(it=>lat.scores[it.id]||0),borderColor:'#2e7d6f',backgroundColor:'rgba(46,125,111,.2)',pointBackgroundColor:'#2e7d6f'}]},options:{responsive:true,maintainAspectRatio:false,scales:{r:{min:0,max:5,ticks:{stepSize:1,font:{size:10}},pointLabels:{font:{size:11}}}},plugins:{legend:{display:true,position:'bottom'}}}});
+  cR=new Chart(document.getElementById('cvR'),{type:'radar',data:{labels:items.map(it=>{const n=it.name;return n.length>6?n.slice(0,6)+'…':n}),datasets:[
+    {label:lat.date,data:items.map(it=>lat.scores[it.id]||0),borderColor:'#2e7d6f',backgroundColor:'rgba(46,125,111,.2)',pointBackgroundColor:'#2e7d6f'},
+    ...(prev?[{label:prev.date+'（'+t('prevLbl')+'）',data:items.map(it=>prev.scores[it.id]||0),borderColor:'#9e9e9e',backgroundColor:'rgba(158,158,158,.08)',pointBackgroundColor:'#9e9e9e',borderDash:[5,4],borderWidth:1.5}]:[])
+  ]},options:{responsive:true,maintainAspectRatio:false,scales:{r:{min:0,max:5,ticks:{stepSize:1,font:{size:10}},pointLabels:{font:{size:11}}}},plugins:{legend:{display:true,position:'bottom'}}}});
 }
 
 /* ==============================================================
@@ -809,6 +934,61 @@ function validCfg(c){
   if(!c.sections.every(s=>s&&s.id!=null&&'name'in s))return false;
   if(!c.items.every(it=>it&&it.id!=null&&it.secId!=null&&'name'in it))return false;
   return true;
+}
+
+/* ==============================================================
+   全データのバックアップ / 復元（全豚舎の評価＋項目を1ファイルに）
+   ============================================================== */
+function exportAll(){
+  const payload={_type:'pig_farm_eval_backup',version:1,exportedAt:new Date().toISOString(),barns:{}};
+  BARNS.forEach(b=>{
+    const k=keysFor(b.key);
+    let data=null,items=null;
+    try{data=JSON.parse(localStorage.getItem(k.s))}catch{}
+    try{items=JSON.parse(localStorage.getItem(k.c))}catch{}
+    payload.barns[b.key]={data,items};
+  });
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([JSON.stringify(payload,null,2)],{type:'application/json;charset=utf-8;'}));
+  a.download='hss_eval_backup_'+new Date().toISOString().slice(0,10).replace(/-/g,'')+'.json';
+  a.click();URL.revokeObjectURL(a.href);
+  toast(t('tBackupExp'));
+}
+function validRec(r){return r&&typeof r==='object'&&typeof r.id==='string'&&typeof r.date==='string'&&r.scores&&typeof r.scores==='object'}
+function importAll(input){
+  const file=input.files&&input.files[0];if(!file)return;
+  const rd=new FileReader();
+  rd.onload=()=>{
+    let data;
+    try{data=JSON.parse(rd.result)}catch{toast(t('eImpCfg'),1);input.value='';return}
+    if(!data||data._type!=='pig_farm_eval_backup'||!data.barns||typeof data.barns!=='object'){toast(t('eImpCfg'),1);input.value='';return}
+    if(!confirm(t('cImpAll'))){input.value='';return}
+    let added=0;
+    BARNS.forEach(b=>{
+      const src=data.barns[b.key];if(!src)return;
+      const k=keysFor(b.key);
+      // 評価データ：既存に無いIDだけ追加（マージ）
+      const evs=src.data&&Array.isArray(src.data.evaluations)?src.data.evaluations.filter(validRec):[];
+      if(evs.length){
+        let cur=[];try{const r=localStorage.getItem(k.s);cur=r?JSON.parse(r).evaluations||[]:[]}catch{}
+        const ids=new Set(cur.map(e=>e.id));
+        evs.forEach(e=>{if(!ids.has(e.id)){cur.push(e);added++}});
+        localStorage.setItem(k.s,JSON.stringify({evaluations:cur}));
+      }
+      // 評価項目：ファイル側があれば上書き（IDはサニタイズ）
+      if(src.items&&validCfg(src.items)){
+        const c={sections:src.items.sections.map(s=>({id:sanitizeId(s.id),name:String(s.name||'')})),
+                 items:src.items.items.map(it=>({id:sanitizeId(it.id),secId:sanitizeId(it.secId),name:String(it.name||''),desc:String(it.desc||'')}))};
+        localStorage.setItem(k.c,JSON.stringify(c));
+      }
+    });
+    cfg=loadCfg();
+    buildCfgUI();buildCards();refreshSel();drawHist();
+    toast(t('tBackupImp')+' (+'+added+')');
+    input.value='';
+  };
+  rd.onerror=()=>{toast(t('eImpCfg'),1);input.value=''};
+  rd.readAsText(file,'utf-8');
 }
 
 /* ==============================================================
