@@ -525,11 +525,11 @@ function buildCards(){
   secs.forEach((sec,si)=>{
     const secItems=items.filter(it=>it.secId===sec.id);
     if(!secItems.length)return;
-    h+=`<div class="stit">${sec.name}</div>`;
+    h+=`<div class="stit">${esc(sec.name)}</div>`;
     secItems.forEach((it,ii)=>{
       const cr=criteriaFor(it.id);
       h+=`<div class="cd ec" id="c-${it.id}">
-        <div class="en">${sec.name.charAt(0)}-${ii+1}</div>
+        <div class="en">${esc(sec.name.charAt(0))}-${ii+1}</div>
         <div class="enm">${esc(it.name)}</div>
         <div class="ed">${esc(it.desc)}</div>
         ${cr?`<button class="crit-tg" id="critb-${it.id}" onclick="toggleCrit('${it.id}')">▼ ${t('showCrit')}</button>
@@ -725,7 +725,7 @@ function drawHist(){
   all.sort((a,b)=>b.date.localeCompare(a.date)||(b.createdAt||'').localeCompare(a.createdAt||''));
   const c=document.getElementById('hList');
   if(!all.length){c.innerHTML=`<div class="nd">${t('noData')}</div>`;return}
-  c.innerHTML=all.map(r=>`<div class="hi" onclick="showDet('${r.id}')"><div class="hii"><div class="hid">${r.date}　${t('evLbl')}: ${esc(r.evaluator)}</div><div class="hin">${esc(r.evaluatee)}</div></div><div class="hia">${avg(r.scores)}</div></div>`).join('');
+  c.innerHTML=all.map(r=>`<div class="hi" onclick="showDet('${sanitizeId(r.id)}')"><div class="hii"><div class="hid">${esc(r.date)}　${t('evLbl')}: ${esc(r.evaluator)}</div><div class="hin">${esc(r.evaluatee)}</div></div><div class="hia">${avg(r.scores)}</div></div>`).join('');
 }
 function avg(sc){const v=Object.values(sc).filter(x=>x!=null);return v.length?(v.reduce((a,b)=>a+b,0)/v.length).toFixed(1):'-'}
 
@@ -735,14 +735,14 @@ function avg(sc){const v=Object.values(sc).filter(x=>x!=null);return v.length?(v
 function showDet(id){
   const r=getAll().find(e=>e.id===id);if(!r)return;
   const av=avg(r.scores);const items=getItems();
-  let h=`<div class="mh"><h3>${esc(r.evaluatee)} - ${r.date}</h3><button class="mx" onclick="closeMo()">&times;</button></div>`;
+  let h=`<div class="mh"><h3>${esc(r.evaluatee)} - ${esc(r.date)}</h3><button class="mx" onclick="closeMo()">&times;</button></div>`;
   h+=`<div style="font-size:.85rem;color:var(--sub);margin-bottom:12px">${t('evLbl')}: ${esc(r.evaluator)}　／　${t('avgLbl')}: ${av}</div>`;
   items.forEach(it=>{
     const sc=r.scores[it.id],cm=r.comments[it.id];
     h+=`<div class="di"><div class="dih"><span class="din">${esc(it.name)}</span>${sc?`<span class="dis sb${sc}">${sc}</span>`:''}</div>${cm?`<div class="dic">${esc(cm)}</div>`:''}</div>`;
   });
   if(r.overall)h+=`<div class="dov"><strong>${t('ovLbl')}:</strong><br>${esc(r.overall)}</div>`;
-  h+=`<div class="ma"><button class="b b4" style="flex:1" onclick="startEdit('${r.id}')">${t('btnEdit')}</button><button class="b b2" style="flex:1" onclick="doDel('${r.id}')">${t('btnDel')}</button><button class="b b3" style="flex:1" onclick="closeMo()">${t('btnClose')}</button></div>`;
+  h+=`<div class="ma"><button class="b b4" style="flex:1" onclick="startEdit('${sanitizeId(r.id)}')">${t('btnEdit')}</button><button class="b b2" style="flex:1" onclick="doDel('${sanitizeId(r.id)}')">${t('btnDel')}</button><button class="b b3" style="flex:1" onclick="closeMo()">${t('btnClose')}</button></div>`;
   document.getElementById('moBody').innerHTML=h;
   document.getElementById('modal').classList.add('show');
 }
@@ -972,7 +972,7 @@ function importAll(input){
       if(evs.length){
         let cur=[];try{const r=localStorage.getItem(k.s);cur=r?JSON.parse(r).evaluations||[]:[]}catch{}
         const ids=new Set(cur.map(e=>e.id));
-        evs.forEach(e=>{if(!ids.has(e.id)){cur.push(e);added++}});
+        evs.forEach(e=>{const id=sanitizeId(e.id);if(!ids.has(id)){cur.push({...e,id});added++}});
         localStorage.setItem(k.s,JSON.stringify({evaluations:cur}));
       }
       // 評価項目：ファイル側があれば上書き（IDはサニタイズ）
