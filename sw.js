@@ -1,8 +1,12 @@
 /* HSS 評価システム Service Worker
    ネットワーク優先＋キャッシュフォールバック：
    オンライン時は常に最新を取得しつつキャッシュを更新、圏外の豚舎でもオフラインで起動できる */
-const CACHE = 'hss-eval-v1';
-const ASSETS = ['./', './index.html', './chart.umd.min.js', './manifest.json', './icon-192.png', './icon-512.png'];
+const CACHE = 'hss-eval-v2';
+const ASSETS = [
+  './', './index.html', './styles.css',
+  './js/util.js', './js/i18n.js', './js/data.js', './js/store.js', './js/ui.js', './js/app.js',
+  './chart.umd.min.js', './manifest.json', './icon-192.png', './icon-512.png',
+];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting()));

@@ -206,6 +206,17 @@ function ok(name, cond) {
   await page.waitForTimeout(500);
   ok('復元後 作業評価1件', await page.evaluate(() => JSON.parse(localStorage.getItem('pig_work_eval_data_v1')).evaluations.length === 1));
 
+  console.log('[12] 作業選択状態でのリロード（起動順の回帰）');
+  await page.evaluate(() => {
+    localStorage.setItem('pig_eval_mode', 'work');
+    localStorage.setItem('pig_eval_work_sel', 'dung-removal');
+  });
+  await page.reload();
+  await page.waitForTimeout(300);
+  ok('リロード後も観点カードが出る', await page.locator('#cards .ec').count() === 7);
+  ok('カテゴリ・作業セレクタが復元', await page.evaluate(() =>
+    document.getElementById('workCatSel').value === 'hygiene' && document.getElementById('workSel').value === 'dung-removal'));
+
   ok('ページエラーなし', errors.length === 0);
   if (errors.length) console.log(errors.join('\n'));
 
