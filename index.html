@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>HSS 評価システム</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js" integrity="sha384-vsrfeLOOY6KuIYKDlmVH5UiBmgIdB1oEf7p01YgWHuqmOHfZr374+odEv96n9tNC" crossorigin="anonymous"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -705,13 +705,13 @@ function cfgItemDesc(itemId,val){const it=cfg.items.find(i=>i.id===itemId);if(it
 
 /* セクション追加 */
 function addSection(){
-  const id='sec_'+Date.now();
+  const id=sanitizeId('sec_'+Date.now());
   cfg.sections.push({id,name:t('secName')});
   buildCfgUI();
 }
 /* セクション内に項目追加 */
 function addItem(secId){
-  const id='item_'+Date.now();
+  const id=sanitizeId('item_'+Date.now());
   // そのセクションの最後の項目の後ろに挿入
   const lastIdx=cfg.items.map((it,i)=>it.secId===secId?i:-1).filter(i=>i>=0);
   const insertAt=lastIdx.length?lastIdx[lastIdx.length-1]+1:cfg.items.length;
@@ -792,8 +792,8 @@ function importCfg(input){
     const c=data&&data._type==='pig_farm_eval_config'?data.cfg:data;
     if(!validCfg(c)){toast(t('eImpCfg'),1);input.value='';return}
     if(!confirm(t('cImpCfg'))){input.value='';return}
-    cfg={sections:c.sections.map(s=>({id:String(s.id),name:String(s.name||'')})),
-         items:c.items.map(it=>({id:String(it.id),secId:String(it.secId),name:String(it.name||''),desc:String(it.desc||'')}))};
+    cfg={sections:c.sections.map(s=>({id:sanitizeId(s.id),name:String(s.name||'')})),
+         items:c.items.map(it=>({id:sanitizeId(it.id),secId:sanitizeId(it.secId),name:String(it.name||''),desc:String(it.desc||'')}))};
     localStorage.setItem(CKEY,JSON.stringify(cfg));
     buildCfgUI();buildCards();restoreSt();
     toast(t('cfgImported'));
@@ -816,6 +816,7 @@ function validCfg(c){
    ============================================================== */
 function toast(msg,err){const el=document.getElementById('toast');el.textContent=msg;el.style.background=err?'#d32f2f':'#333';el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2500)}
 function esc(s){if(!s)return'';const d=document.createElement('div');d.textContent=s;return d.innerHTML}
+function sanitizeId(s){return String(s).replace(/[^a-zA-Z0-9_\-]/g,'_');}
 </script>
 </body>
 </html>
