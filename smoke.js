@@ -119,6 +119,93 @@ function ok(name, cond) {
   ok('カード11枚', await page.locator('#cards .ec').count() === 11);
   ok('基準ボタンは10個のまま', await page.locator('.crit-tg').count() === 10);
 
+  console.log('[9] 作業評価モード：モード切替→カテゴリ→作業→採点');
+  await page.evaluate(() => localStorage.clear());
+  await page.reload();
+  await page.waitForTimeout(200);
+  await page.click('#modeWork');
+  await page.waitForTimeout(200);
+  ok('作業バー表示', await page.locator('#workbar').isVisible());
+  ok('豚舎バー非表示', !(await page.locator('#barnbar').isVisible()));
+  ok('作業未選択プレースホルダ', await page.locator('#cards .pickwork').count() === 1);
+  await page.selectOption('#workCatSel', 'hygiene');
+  await page.waitForTimeout(150);
+  // 衛生管理の作業数（データ由来）
+  const hygieneCount = await page.evaluate(() => worksInCat('hygiene').length);
+  ok('衛生カテゴリの作業がセレクトに入る', await page.locator('#workSel option').count() === hygieneCount + 1);
+  await page.selectOption('#workSel', 'dung-removal');
+  await page.waitForTimeout(200);
+  // 除フン=固有観点2＋共通観点5＝7カード
+  ok('除フンの観点7カード', await page.locator('#cards .ec').count() === 7);
+  ok('固有観点セクションと共通観点セクション', await page.locator('#cards .stit').count() === 2);
+  ok('基準ボタン7個', await page.locator('.crit-tg').count() === 7);
+  // 基準タップ採点（固有観点1つ目）
+  const firstId = await page.evaluate(() => workItems('dung-removal')[0].id);
+  await page.click(`#critb-${firstId}`);
+  ok('基準文に作業名の観点が出る', (await page.locator(`#crit-${firstId} .crit-lv`).count()) === 5);
+  await page.click(`#crit-${firstId} .crit-lv[data-s="4"]`);
+  ok('作業評価も進捗 1/7', (await page.locator('#progT').textContent()).includes('1/7'));
+  // 共通観点も採点（作業名が基準文に埋め込まれているか）
+  const commonBody = await page.evaluate(() => {
+    const its = workItems('dung-removal');
+    const care = its.find(i => i.id === 'care');
+    return care.levels[0];
+  });
+  ok('共通観点の基準文に作業名が埋め込まれる', commonBody.includes('除フン'));
+
+  console.log('[10] 作業評価：全観点採点→保存→履歴→別作業と分離');
+  await page.fill('#fEv', '岡田'); await page.fill('#fEe', '作業太郎');
+  const wIds = await page.evaluate(() => workItems('dung-removal').map(i => i.id));
+  for (const id of wIds) await page.click(`.sb[data-id="${id}"][data-s="3"]`);
+  ok('進捗 7/7', (await page.locator('#progT').textContent()).includes('7/7'));
+  await page.click('#btnSave');
+  await page.waitForTimeout(300);
+  await page.click('.tabs button[data-pg="pgHi"]');
+  await page.waitForTimeout(150);
+  ok('作業評価の履歴1件', await page.locator('.hi').count() === 1);
+  ok('履歴に作業名が出る', (await page.locator('.hi .hin').textContent()).includes('除フン'));
+  // 別作業に切り替えると履歴データは同テーブルだが入力はリセット
+  await page.click('.tabs button[data-pg="pgIn"]');
+  await page.selectOption('#workCatSel', 'farrowing');
+  await page.selectOption('#workSel', 'farrow-assist');
+  await page.waitForTimeout(200);
+  ok('分娩介助=固有3＋共通5＝8観点', await page.locator('#cards .ec').count() === 8);
+  ok('切替後は未採点 0/8', (await page.locator('#progT').textContent()).includes('0/8'));
+  // 豚舎モードへ戻すと作業評価データと混ざらない
+  await page.click('#modeBarn');
+  await page.waitForTimeout(200);
+  ok('豚舎モードの評価データは0件', await page.evaluate(() => {
+    const r = localStorage.getItem('pig_farm_evaluation_v1');
+    return !r || JSON.parse(r).evaluations.length === 0;
+  }));
+  ok('作業評価データは1件で保持', await page.evaluate(() => JSON.parse(localStorage.getItem('pig_work_eval_data_v1')).evaluations.length === 1));
+
+  console.log('[11] バックアップに作業評価が含まれ復元できる');
+  page.removeAllListeners('dialog');
+  page.on('dialog', d => d.accept('ooiri'));
+  await page.click('.tabs button[data-pg="pgCfg"]');
+  await page.waitForTimeout(300);
+  const [dl2] = await Promise.all([
+    page.waitForEvent('download'),
+    page.click('text=全データをバックアップ'),
+  ]);
+  const path2 = require('path').join(require('os').tmpdir(), 'hss_backup_work.json');
+  await dl2.saveAs(path2);
+  const bk = JSON.parse(require('fs').readFileSync(path2, 'utf8'));
+  ok('バックアップにworkEval', bk.workEval && bk.workEval.evaluations.length === 1);
+  await page.evaluate(() => localStorage.clear());
+  await page.reload();
+  await page.waitForTimeout(200);
+  await page.click('.tabs button[data-pg="pgCfg"]');
+  await page.waitForTimeout(300);
+  const [fc2] = await Promise.all([
+    page.waitForEvent('filechooser'),
+    page.click('text=バックアップから復元'),
+  ]);
+  await fc2.setFiles(path2);
+  await page.waitForTimeout(500);
+  ok('復元後 作業評価1件', await page.evaluate(() => JSON.parse(localStorage.getItem('pig_work_eval_data_v1')).evaluations.length === 1));
+
   ok('ページエラーなし', errors.length === 0);
   if (errors.length) console.log(errors.join('\n'));
 

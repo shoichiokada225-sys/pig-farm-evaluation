@@ -1,8 +1,12 @@
 # -*- coding: utf-8 -*-
-"""criteria-data.json を index.html の <script id="criteriaData"> に埋め込む。
+"""正本JSONを index.html の <script> データブロックに埋め込む。
 
-正本は criteria-data.json。基準を更新したら本スクリプトを実行して
-index.html へ再埋め込みする（build_pdf.py / build_xlsx.py と同じ正本を共有）。
+- criteria-data.json      → <script id="criteriaData">     （豚舎別評価の基準）
+- work-criteria.json      → <script id="workCriteriaData"> （作業評価の共通観点＋カテゴリ）
+  ＋ works-data.json を works フィールドに結合してから埋め込む（作業＝大項目・固有観点）
+
+基準を更新したら本スクリプトを実行して index.html へ再埋め込みする
+（build_pdf.py / build_xlsx.py と同じ正本を共有）。
 
     python build_html.py
 """
@@ -11,26 +15,43 @@ import os
 import re
 
 BASE = os.path.dirname(os.path.abspath(__file__))
-SRC = os.path.join(BASE, "criteria-data.json")
 DST = os.path.join(BASE, "index.html")
 
-with open(SRC, encoding="utf-8") as f:
-    data = json.load(f)
 
-# </script> でタグが閉じないよう "</" をエスケープ（JSON.parse は "\/" を "/" として解釈）
-payload = json.dumps(data, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
+def dumps(obj):
+    # </script> でタグが閉じないよう "</" をエスケープ（JSON.parse は "\/" を "/" と解釈）
+    return json.dumps(obj, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
+
+
+def embed(html, marker_id, payload):
+    pat = re.compile(
+        r'(<script id="%s" type="application/json">).*?(</script>)' % re.escape(marker_id), re.S
+    )
+    if not pat.search(html):
+        raise SystemExit(f"ERROR: {marker_id} マーカーが index.html に見つかりません")
+    return pat.sub(lambda m: m.group(1) + payload + m.group(2), html, count=1)
+
+
+# --- 豚舎別評価の基準 ---
+with open(os.path.join(BASE, "criteria-data.json"), encoding="utf-8") as f:
+    criteria = json.load(f)
+
+# --- 作業評価（共通観点＋カテゴリ）＋作業データ結合 ---
+with open(os.path.join(BASE, "work-criteria.json"), encoding="utf-8") as f:
+    work = json.load(f)
+with open(os.path.join(BASE, "works-data.json"), encoding="utf-8") as f:
+    works = json.load(f)
+work["works"] = works
 
 with open(DST, encoding="utf-8") as f:
     html = f.read()
 
-pat = re.compile(r'(<script id="criteriaData" type="application/json">).*?(</script>)', re.S)
-if not pat.search(html):
-    raise SystemExit("ERROR: criteriaData マーカーが index.html に見つかりません")
-
-html = pat.sub(lambda m: m.group(1) + payload + m.group(2), html, count=1)
+html = embed(html, "criteriaData", dumps(criteria))
+html = embed(html, "workCriteriaData", dumps(work))
 
 with open(DST, "w", encoding="utf-8", newline="\n") as f:
     f.write(html)
 
-n_items = sum(len(b["items"]) for b in data)
-print(f"OK: {n_items}項目 / {len(payload):,} bytes を index.html に埋め込みました")
+n_criteria = sum(len(b["items"]) for b in criteria)
+n_aspects = sum(len(w["aspects"]) for w in works)
+print(f"OK: 豚舎別{n_criteria}項目 / 作業{len(works)}件・固有観点{n_aspects}個 を index.html に埋め込みました")
