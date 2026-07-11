@@ -1,0 +1,23 @@
+const { chromium } = require('C:/Users/so/farm-shift-app/node_modules/playwright');
+const fs = require('fs');
+const path = require('path');
+(async () => {
+  const b = await chromium.launch();
+  const p = await b.newPage({ viewport: { width: 900, height: 1400 }, deviceScaleFactor: 3 });
+  const errs = [];
+  p.on('pageerror', e => errs.push(String(e)));
+  const inner = fs.readFileSync('hss_guide_noqr.html', 'utf8');
+  const full = '<!doctype html><html><head><meta charset="utf-8"></head><body>' + inner + '</body></html>';
+  fs.writeFileSync('hss_guide_noqr_full.html', full);
+  const url = 'file://' + path.resolve('hss_guide_noqr_full.html').split(path.sep).join('/');
+  await p.goto(url);
+  await p.waitForTimeout(2500);
+  const shots = await p.locator('.shot img').count();
+  const box = await p.$eval('.page', el => ({ w: el.offsetWidth, h: el.offsetHeight }));
+  console.log('shots:', shots, 'errors:', errs.length ? errs.slice(0, 2) : 'none');
+  console.log('page px:', box.w, 'x', box.h, 'ratio', (box.h / box.w).toFixed(3));
+  const page = await p.$('.page');
+  await page.screenshot({ path: 'HSS_annai_noqr.png' });
+  await b.close();
+  console.log('done');
+})();
