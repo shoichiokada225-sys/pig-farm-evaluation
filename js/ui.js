@@ -95,11 +95,11 @@ function doCSV(){
   if(evalMode==='work'){
     // 作業評価: 作業ごとに観点が異なるため縦持ち（1行=1観点）で出力
     const whd=['評価日','評価者','被評価者','カテゴリ','作業','観点','スコア','コメント','平均点','全体所感','作成日時'];
-    let wcsv='\uFEFF'+whd.map(h=>`"${h}"`).join(',')+'\n';
+    let wcsv='\uFEFF'+whd.map(csvCell).join(',')+'\n';
     all.forEach(r=>{
       itemsForRecord(r).forEach(it=>{
-        const row=[r.date,r.evaluator,r.evaluatee,catLabel(r.category||''),r.workName||'',it.name,r.scores[it.id]||'',(r.comments[it.id]||'').replace(/"/g,'""'),avg(r.scores),(r.overall||'').replace(/"/g,'""'),r.createdAt||''];
-        wcsv+=row.map(c=>`"${c}"`).join(',')+'\n';
+        const row=[r.date,r.evaluator,r.evaluatee,catLabel(r.category||''),r.workName||'',it.name,r.scores[it.id]||'',r.comments[it.id]||'',avg(r.scores),r.overall||'',r.createdAt||''];
+        wcsv+=row.map(csvCell).join(',')+'\n';
       });
     });
     const wa=document.createElement('a');wa.href=URL.createObjectURL(new Blob([wcsv],{type:'text/csv;charset=utf-8;'}));
@@ -108,9 +108,9 @@ function doCSV(){
   }
   const items=getItems();
   const hd=['評価日','評価者','被評価者',...items.map(it=>it.name+'(スコア)'),...items.map(it=>it.name+'(コメント)'),'平均点','全体所感','作成日時'];
-  const rows=all.map(r=>[r.date,r.evaluator,r.evaluatee,...items.map(it=>r.scores[it.id]||''),...items.map(it=>(r.comments[it.id]||'').replace(/"/g,'""')),avg(r.scores),(r.overall||'').replace(/"/g,'""'),r.createdAt||'']);
-  let csv='\uFEFF'+hd.map(h=>`"${h}"`).join(',')+'\n';
-  rows.forEach(r=>{csv+=r.map(c=>`"${c}"`).join(',')+'\n'});
+  const rows=all.map(r=>[r.date,r.evaluator,r.evaluatee,...items.map(it=>r.scores[it.id]||''),...items.map(it=>r.comments[it.id]||''),avg(r.scores),r.overall||'',r.createdAt||'']);
+  let csv='\uFEFF'+hd.map(csvCell).join(',')+'\n';
+  rows.forEach(r=>{csv+=r.map(csvCell).join(',')+'\n'});
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'}));
   a.download='evaluation_'+activeBarn+'_'+new Date().toISOString().slice(0,10).replace(/-/g,'')+'.csv';a.click();toast(t('tCSV'));
 }

@@ -130,7 +130,7 @@ function importAll(input){
       if(evs.length){
         let cur=[];try{const r=localStorage.getItem(k.s);cur=r?JSON.parse(r).evaluations||[]:[]}catch{}
         const ids=new Set(cur.map(e=>e.id));
-        evs.forEach(e=>{const id=sanitizeId(e.id);if(!ids.has(id)){cur.push({...e,id});added++}});
+        evs.forEach(e=>{const id=sanitizeId(e.id);if(!ids.has(id)){ids.add(id);cur.push({...e,id});added++}});
         localStorage.setItem(k.s,JSON.stringify({evaluations:cur}));
       }
       // 評価項目：ファイル側があれば上書き（IDはサニタイズ）
@@ -145,7 +145,7 @@ function importAll(input){
     if(wevs.length){
       let cur=[];try{const r=localStorage.getItem(WORK_SKEY);cur=r?JSON.parse(r).evaluations||[]:[]}catch{}
       const ids=new Set(cur.map(e=>e.id));
-      wevs.forEach(e=>{const id=sanitizeId(e.id);if(!ids.has(id)){cur.push({...e,id});added++}});
+      wevs.forEach(e=>{const id=sanitizeId(e.id);if(!ids.has(id)){ids.add(id);cur.push({...e,id});added++}});
       localStorage.setItem(WORK_SKEY,JSON.stringify({evaluations:cur}));
     }
     cfg=loadCfg();

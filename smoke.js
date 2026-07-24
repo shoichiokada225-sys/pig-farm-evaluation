@@ -221,6 +221,72 @@ function ok(name, cond) {
   ok('esc が5文字を全てエスケープ', await page.evaluate(() => esc('&<>"\'') === '&amp;&lt;&gt;&quot;&#39;'));
   ok('esc 出力で属性値から脱出不能', await page.evaluate(() => !/["'<>]/.test(esc('" onfocus="alert(1)" x=\''))));
 
+  console.log('[14] CSV出力のエスケープ／数式インジェクション対策');
+  ok('csvCell が " を二重化', await page.evaluate(() => csvCell('a"b') === '"a""b"'));
+  ok('csvCell が = 始まりを無害化', await page.evaluate(() => csvCell('=HYPERLINK("x")') === `"'=HYPERLINK(""x"")"`));
+  ok('csvCell が +,-,@ 始まりも無害化', await page.evaluate(() =>
+    csvCell('+1').startsWith(`"'`) && csvCell('-1').startsWith(`"'`) && csvCell('@x').startsWith(`"'`)));
+  ok('csvCell が日付・数値はそのまま', await page.evaluate(() => csvCell('2026-07-11') === '"2026-07-11"' && csvCell(3) === '"3"'));
+
+  console.log('[15] CSV：氏名に " が入っても列が壊れない');
+  await page.evaluate(() => localStorage.clear());
+  await page.reload();
+  await page.waitForTimeout(200);
+  const EVIL = 'テ"ス,ト';
+  await page.fill('#fEv', '岡田'); await page.fill('#fEe', EVIL);
+  for (let i = 1; i <= 10; i++) await page.click(`.sb[data-id="item${i}"][data-s="3"]`);
+  await page.click('#btnSave');
+  await page.waitForTimeout(300);
+  await page.click('.tabs button[data-pg="pgHi"]');
+  await page.waitForTimeout(150);
+  const [dl3] = await Promise.all([
+    page.waitForEvent('download'),
+    page.click('button[data-t="btnCSV"]'),
+  ]);
+  const path3 = require('path').join(require('os').tmpdir(), 'hss_csv_quote.csv');
+  await dl3.saveAs(path3);
+  const csvText = require('fs').readFileSync(path3, 'utf8').replace(/^﻿/, '');
+  // 素朴なRFC4180パーサ（"" を " に戻す）
+  const parseCsv = (txt) => {
+    const rows = []; let row = [], cell = '', q = false;
+    for (let i = 0; i < txt.length; i++) {
+      const c = txt[i];
+      if (q) {
+        if (c === '"') { if (txt[i + 1] === '"') { cell += '"'; i++; } else q = false; }
+        else cell += c;
+      } else if (c === '"') q = true;
+      else if (c === ',') { row.push(cell); cell = ''; }
+      else if (c === '\n') { row.push(cell); rows.push(row); row = []; cell = ''; }
+      else if (c !== '\r') cell += c;
+    }
+    if (cell || row.length) { row.push(cell); rows.push(row); }
+    return rows;
+  };
+  const rows = parseCsv(csvText);
+  ok('CSVヘッダとデータの列数が一致', rows.length >= 2 && rows[0].length === rows[1].length);
+  ok('氏名の " と , が往復して復元される', rows[1] && rows[1][2] === EVIL);
+
+  console.log('[16] バックアップ復元：同一IDの重複レコードは1件だけ取り込む');
+  const dupPath = require('path').join(require('os').tmpdir(), 'hss_backup_dup.json');
+  const mkRec = () => ({ id: 'dup-id-1', date: '2026-07-20', evaluator: '岡田', evaluatee: '重複太郎', scores: { item1: 3 }, comments: {} });
+  require('fs').writeFileSync(dupPath, JSON.stringify({
+    _type: 'pig_farm_eval_backup', version: 1,
+    barns: { farrow: { data: { evaluations: [mkRec(), mkRec()] }, items: null } },
+  }), 'utf8');
+  await page.evaluate(() => localStorage.clear());
+  await page.reload();
+  await page.waitForTimeout(200);
+  await page.click('.tabs button[data-pg="pgCfg"]');
+  await page.waitForTimeout(300);
+  const [fc3] = await Promise.all([
+    page.waitForEvent('filechooser'),
+    page.click('text=バックアップから復元'),
+  ]);
+  await fc3.setFiles(dupPath);
+  await page.waitForTimeout(500);
+  ok('重複IDは1件に集約', await page.evaluate(() =>
+    JSON.parse(localStorage.getItem('pig_farm_evaluation_v1')).evaluations.length) === 1);
+
   ok('ページエラーなし', errors.length === 0);
   if (errors.length) console.log(errors.join('\n'));
 
