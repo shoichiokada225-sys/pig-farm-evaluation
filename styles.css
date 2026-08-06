@@ -15,11 +15,12 @@
   --pri-dd:#0a4238;
   --pri-l:#d7efe8;
   --pri-ll:#eef8f4;
-  /* スコア5段階（信号系・文字色はWCAG 4.5:1以上を各背景で担保） */
+  /* スコア5段階（信号系・文字色はWCAG 4.5:1以上を各背景で担保）
+     背景が明るい 2〜4 は濃色文字、暗い 1・5 は白文字 */
   --s5:#12753a;--s5-tx:#ffffff;
   --s4:#7cb342;--s4-tx:#1f3308;
   --s3:#f6b100;--s3-tx:#4a3800;
-  --s2:#f57c00;--s2-tx:#a34700;
+  --s2:#f57c00;--s2-on:#401f00;--s2-tx:#a34700;
   --s1:#c62828;--s1-tx:#c62828;
   --s1-l:#fdecea;--s2-l:#fff3e0;
   /* ニュートラル */
@@ -77,14 +78,15 @@ button{touch-action:manipulation}
   background:linear-gradient(160deg,rgba(255,255,255,.22),rgba(255,255,255,.08));
   border:1px solid rgba(255,255,255,.30);
   box-shadow:0 1px 3px rgba(0,0,0,.18),0 1px 0 rgba(255,255,255,.14) inset;
-  display:flex;align-items:center;justify-content:center;font-size:1.2rem;
+  display:flex;align-items:center;justify-content:center;overflow:hidden;
 }
+.brand-mk img{width:100%;height:100%;object-fit:cover;border-radius:inherit;display:block}
 .hdr h1{font-size:1.04rem;font-weight:700;letter-spacing:.03em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 1px 2px rgba(0,0,0,.15)}
 .hdr .brand-sub{display:block;font-size:.6rem;font-weight:600;color:rgba(255,255,255,.72);letter-spacing:.22em;line-height:1.3;text-transform:uppercase}
 .lsw{display:flex;flex-shrink:0;background:rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.24);border-radius:10px;padding:2px;gap:2px}
 .lsw button{
   background:transparent;border:0;color:rgba(255,255,255,.85);
-  min-width:34px;padding:7px 7px;border-radius:8px;
+  min-width:36px;min-height:44px;padding:7px 5px;border-radius:8px;
   font-size:.72rem;font-weight:700;letter-spacing:.02em;cursor:pointer;
   transition:background .15s,color .15s;
 }
@@ -103,8 +105,9 @@ button{touch-action:manipulation}
 .modebar button.on{color:var(--pri-d);border-bottom-color:var(--pri);background:var(--pri-ll)}
 .modebar button:active{transform:scale(.98)}
 
-.barnbar{display:flex;align-items:center;gap:10px;background:#fff;border-bottom:1px solid var(--bdr);padding:10px 16px}
+.barnbar{display:flex;align-items:center;gap:8px;background:#fff;border-bottom:1px solid var(--bdr);padding:10px 16px}
 .barnbar-lbl{font-size:.82rem;font-weight:700;color:var(--sub);white-space:nowrap}
+.bb-ic{flex-shrink:0;width:18px;height:18px;fill:var(--pri);}
 .barnbar select{
   flex:1;max-width:320px;min-height:var(--tap);padding:9px 34px 9px 12px;
   border:2px solid var(--pri);border-radius:var(--r-sm);
@@ -123,7 +126,7 @@ button{touch-action:manipulation}
   align-items:center;justify-content:center;gap:10px;
 }
 .ebar.show{display:flex}
-.ebar button{background:#fff;border:1.5px solid var(--s2-tx);color:var(--s2-tx);border-radius:7px;padding:5px 14px;min-height:32px;font-size:.8rem;font-weight:700;cursor:pointer;transition:background .15s,color .15s}
+.ebar button{background:#fff;border:1.5px solid var(--s2-tx);color:var(--s2-tx);border-radius:7px;padding:5px 14px;min-height:44px;font-size:.8rem;font-weight:700;cursor:pointer;transition:background .15s,color .15s}
 .ebar button:hover{background:var(--s2-tx);color:#fff}
 
 /* ---------- 5. ページ・カード ---------- */
@@ -187,7 +190,7 @@ button{touch-action:manipulation}
 /* 点数ボタン: 各スコア色を --sc に集約（下端ヒント/ホバー/選択で共用） */
 .sr{display:flex;gap:6px;margin-bottom:10px}
 .sb{
-  flex:1;min-height:54px;border:2px solid var(--bdr-strong);border-radius:10px;background:#fff;
+  flex:1;min-height:58px;border:2px solid var(--bdr-strong);border-radius:10px;background:#fff;
   font-size:1.15rem;font-weight:700;font-variant-numeric:tabular-nums;color:var(--txt);cursor:pointer;
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;
   position:relative;overflow:hidden;
@@ -199,7 +202,7 @@ button{touch-action:manipulation}
 .sb[data-s="3"]{--sc:var(--s3)}
 .sb[data-s="2"]{--sc:var(--s2)}
 .sb[data-s="1"]{--sc:var(--s1)}
-.sb .sl{font-size:.58rem;font-weight:600;color:var(--sub);line-height:1.15;text-align:center}
+.sb .sl{font-size:.7rem;font-weight:600;color:var(--sub);line-height:1.15;text-align:center;padding:0 2px}
 .sb:hover{border-color:var(--sc,var(--pri));background:var(--pri-ll)}
 .sb:active{transform:scale(.94)}
 .sb.sel{background:var(--sc);border-color:transparent;box-shadow:0 3px 10px rgba(10,66,56,.24)}
@@ -210,8 +213,8 @@ button{touch-action:manipulation}
 .sb[data-s="4"].sel .sl{color:var(--s4-tx)}
 .sb[data-s="3"].sel{color:var(--s3-tx)}
 .sb[data-s="3"].sel .sl{color:var(--s3-tx)}
-.sb[data-s="2"].sel{color:#fff}
-.sb[data-s="2"].sel .sl{color:rgba(255,255,255,.92)}
+.sb[data-s="2"].sel{color:var(--s2-on)}
+.sb[data-s="2"].sel .sl{color:var(--s2-on)}
 .sb[data-s="1"].sel{color:#fff}
 .sb[data-s="1"].sel .sl{color:rgba(255,255,255,.92)}
 
@@ -235,7 +238,7 @@ button{touch-action:manipulation}
 
 /* ---------- 8. 評価基準（レベル1〜5） ---------- */
 .crit-tg{
-  width:100%;min-height:40px;margin:2px 0 10px;
+  width:100%;min-height:44px;margin:2px 0 10px;
   background:var(--pri-ll);border:1px solid var(--pri);color:var(--pri-d);
   border-radius:var(--r-sm);padding:9px 12px;font-size:.82rem;font-weight:700;cursor:pointer;text-align:center;
   transition:background .15s;
@@ -252,8 +255,8 @@ button{touch-action:manipulation}
 .crit-lv:active{background:var(--pri-l)}
 .crit-lv.sel{background:var(--pri-l);box-shadow:inset 4px 0 0 var(--pri)}
 .crit-n{flex-shrink:0;width:30px;height:30px;border-radius:8px;color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center;font-size:.95rem;box-shadow:0 1px 3px rgba(10,66,56,.18)}
-.crit-t{font-size:.79rem;line-height:1.55}
-.crit-t b{display:block;font-size:.72rem;color:var(--sub);margin-bottom:2px}
+.crit-t{font-size:.875rem;line-height:1.55}
+.crit-t b{display:block;font-size:.76rem;color:var(--sub);margin-bottom:2px}
 
 /* ---------- 9. アクションボタン ---------- */
 .bg{display:flex;gap:10px;margin:16px 0}
@@ -305,6 +308,7 @@ button{touch-action:manipulation}
   border-radius:10px;padding:6px 8px;line-height:1.2;
 }
 .hi .hia.av4{color:var(--s5);background:#ecf7ee;border-color:#d3ecd8}
+.hi .hia.av3{color:#6b5200;background:#fff8e1;border-color:#f0e3b8}
 .hi .hia.av2{color:var(--s2-tx);background:var(--s2-l);border-color:#ffe0b2}
 .hi .hia.av1{color:var(--s1);background:var(--s1-l);border-color:#f5c6c2}
 
@@ -323,7 +327,7 @@ body.mo-open{overflow:hidden}
 @keyframes mcin{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
 .mh{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--bdr)}
 .mh h3{font-size:1.04rem;color:var(--pri-dd)}
-.mx{background:0;border:0;font-size:1.5rem;cursor:pointer;padding:4px 10px;min-width:40px;min-height:40px;color:var(--sub);border-radius:8px;line-height:1;transition:background .15s,color .15s}
+.mx{background:0;border:0;font-size:1.5rem;cursor:pointer;padding:4px 10px;min-width:44px;min-height:44px;color:var(--sub);border-radius:8px;line-height:1;transition:background .15s,color .15s}
 .mx:hover{background:var(--bg);color:var(--txt)}
 .di{padding:10px 0;border-bottom:1px solid #eef2f1}
 .di:last-of-type{border-bottom:none}
@@ -338,8 +342,11 @@ body.mo-open{overflow:hidden}
 .sb5{background:var(--s5);color:var(--s5-tx)}
 .sb4{background:var(--s4);color:var(--s4-tx)}
 .sb3{background:var(--s3);color:var(--s3-tx)}
-.sb2{background:var(--s2);color:#fff}
+.sb2{background:var(--s2);color:var(--s2-on)}
 .sb1{background:var(--s1);color:#fff}
+/* モーダル内の破壊的操作: 面積を絞ったテキストボタン */
+.bt-danger{flex:0 0 auto;background:none;border:none;color:var(--s1);padding:14px 10px;min-height:50px}
+.bt-danger:hover{background:var(--s1-l)}
 
 /* ---------- 12. グラフ ---------- */
 .chc,.chb{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);padding:16px;margin-bottom:16px;box-shadow:var(--sh)}
@@ -378,7 +385,7 @@ body.mo-open{overflow:hidden}
 .cfg-item textarea:focus{border-color:var(--pri);box-shadow:0 0 0 3px var(--pri-l)}
 .ci-btns{display:flex;gap:4px;flex-shrink:0}
 .ci-btns button{
-  width:40px;height:40px;border:1px solid var(--bdr-strong);border-radius:var(--r-sm);background:#fff;cursor:pointer;
+  width:44px;height:44px;border:1px solid var(--bdr-strong);border-radius:var(--r-sm);background:#fff;cursor:pointer;
   font-size:1rem;display:flex;align-items:center;justify-content:center;color:var(--sub);transition:all .15s;
 }
 .ci-btns button:hover{background:var(--pri-l);color:var(--pri-d);border-color:var(--pri)}
@@ -434,13 +441,13 @@ body.mo-open{overflow:hidden}
 
 /* ---------- 作業評価: プレースホルダ ---------- */
 .pickwork{text-align:center;color:var(--sub);padding:48px 20px;font-size:.95rem;line-height:1.7}
-.pickwork .pw-ic{font-size:2.6rem;display:block;margin-bottom:12px;filter:grayscale(.15)}
+.pickwork .pw-ic{width:48px;height:48px;fill:var(--bdr-strong);display:block;margin:0 auto 12px}
 
 /* ---------- 16. 応答（画面幅・動作抑制・印刷） ---------- */
 @media(min-width:640px){
   .pg{padding:24px}
-  .sb{min-height:58px;font-size:1.25rem}
-  .sb .sl{font-size:.62rem}
+  .sb{min-height:62px;font-size:1.25rem}
+  .sb .sl{font-size:.72rem}
   .hdr h1{font-size:1.12rem}
   .hdr{padding:12px 24px}
 }

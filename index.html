@@ -20,7 +20,7 @@
 
 <header class="hdr">
   <div class="brand">
-    <span class="brand-mk" aria-hidden="true">🐖</span>
+    <span class="brand-mk" aria-hidden="true"><img src="icon-192.png" alt="" width="36" height="36"></span>
     <div>
       <h1 data-t="appTitle">HSS 評価システム</h1>
       <span class="brand-sub">HSS SKILL EVALUATION</span>
@@ -34,19 +34,21 @@
   </div>
 </header>
 
-<div class="modebar" role="tablist">
-  <button id="modeBarn" class="on" onclick="setMode('barn')" data-t="modeBarn" role="tab" aria-selected="true">豚舎別評価</button>
-  <button id="modeWork" onclick="setMode('work')" data-t="modeWork" role="tab" aria-selected="false">作業評価</button>
+<div class="modebar" role="group" aria-label="評価モード">
+  <button id="modeBarn" class="on" onclick="setMode('barn')" data-t="modeBarn" aria-pressed="true">豚舎別評価</button>
+  <button id="modeWork" onclick="setMode('work')" data-t="modeWork" aria-pressed="false">作業評価</button>
 </div>
 
 <div class="barnbar" id="barnbar">
-  <span class="barnbar-lbl" id="barnLbl" data-t="barnLbl">🏠 豚舎</span>
+  <svg class="bb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l9 8h-2v9h-5v-6h-4v6H5v-9H3z"/></svg>
+  <span class="barnbar-lbl" id="barnLbl" data-t="barnLbl">豚舎</span>
   <select id="barnSel" onchange="setBarn(this.value)" aria-labelledby="barnLbl"></select>
 </div>
 
 <div class="barnbar" id="workbar" style="display:none;flex-wrap:wrap;gap:8px">
-  <span class="barnbar-lbl" id="workLbl" data-t="workLbl">🐖 作業</span>
-  <select id="workCatSel" onchange="setWorkCat(this.value)" style="flex:1 1 120px" aria-labelledby="workLbl"></select>
+  <svg class="bb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4a3 3 0 0 1 6 0h3a1 1 0 0 1 1 1v15a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1zm3-1a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm-1.4 12.6-2.1-2.1L7 15l3.6 3.6 6-6-1.5-1.5z"/></svg>
+  <span class="barnbar-lbl" id="workLbl" data-t="workLbl">作業</span>
+  <select id="workCatSel" onchange="setWorkCat(this.value)" style="flex:1 1 120px"></select>
   <select id="workSel" onchange="setWork(this.value)" style="flex:1 1 160px" aria-labelledby="workLbl"></select>
 </div>
 
@@ -57,19 +59,19 @@
 
 <!-- 入力 -->
 <div id="pgIn" class="pg on">
-  <div class="prog"><div class="prog-b"><div class="prog-f" id="progF"></div></div><span class="prog-t" id="progT"></span></div>
+  <div class="prog"><div class="prog-b" id="progB" role="progressbar" aria-valuemin="0" aria-valuemax="0" aria-valuenow="0"><div class="prog-f" id="progF"></div></div><span class="prog-t" id="progT"></span></div>
   <div class="cd meta">
-    <label data-t="labelDate">評価日</label>
+    <label for="fDate" data-t="labelDate">評価日</label>
     <input type="date" id="fDate">
-    <label data-t="labelEvaluator">評価者名</label>
+    <label for="fEv" data-t="labelEvaluator">評価者名</label>
     <input type="text" id="fEv" data-ph="phEv" placeholder="例：山田太郎">
-    <label data-t="labelEvaluatee">被評価者名</label>
+    <label for="fEe" data-t="labelEvaluatee">被評価者名</label>
     <input type="text" id="fEe" data-ph="phEe" placeholder="例：佐藤花子">
   </div>
   <div id="cards"></div>
   <div class="cd oasec">
-    <h3 data-t="overall">全体所感</h3>
-    <textarea id="fOv" class="oata" rows="4" data-ph="phOv" placeholder="全体的な評価や今後の期待などを記入..."></textarea>
+    <h3 id="fOvLbl" data-t="overall">全体所感</h3>
+    <textarea id="fOv" class="oata" rows="4" data-ph="phOv" aria-labelledby="fOvLbl" placeholder="全体的な評価や今後の期待などを記入..."></textarea>
   </div>
   <div class="bg">
     <button class="b b1" id="btnSave" onclick="doSave()" data-t="btnSave">保存</button>
@@ -132,7 +134,7 @@
 </div>
 
 <!-- モーダル -->
-<div class="mo" id="modal" role="dialog" aria-modal="true" onclick="if(event.target===this)closeMo()">
+<div class="mo" id="modal" role="dialog" aria-modal="true" aria-labelledby="moTitle" onclick="if(event.target===this)closeMo()">
   <div class="mc" id="moBody"></div>
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>

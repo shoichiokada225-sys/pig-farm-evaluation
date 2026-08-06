@@ -12,6 +12,9 @@ function applyT(){
   document.querySelectorAll('[data-t]').forEach(el=>{el.textContent=t(el.dataset.t)});
   document.querySelectorAll('[data-ph]').forEach(el=>{el.placeholder=t(el.dataset.ph)});
   document.getElementById('btnSave').textContent=editId?t('btnUpdate'):t('btnSave');
+  // 視覚ラベルを持たないセレクトのアクセシブルネーム（言語切替に追従）
+  document.getElementById('hFil').setAttribute('aria-label',t('filterLbl'));
+  document.getElementById('workCatSel').setAttribute('aria-label',t('catCol'));
 }
 
 /* ==============================================================
@@ -34,6 +37,17 @@ document.addEventListener('DOMContentLoaded',()=>{
   };
   applyDeepLink();
   window.addEventListener('hashchange',applyDeepLink);
+  // モーダルのキーボード操作: Escで閉じる・Tabはモーダル内で循環（フォーカストラップ）
+  const mo=document.getElementById('modal');
+  mo.addEventListener('keydown',e=>{
+    if(e.key==='Escape'){closeMo();return}
+    if(e.key!=='Tab')return;
+    const f=[...mo.querySelectorAll('button,[href],input,textarea,select,[tabindex]:not([tabindex="-1"])')].filter(el=>el.offsetParent!==null);
+    if(!f.length)return;
+    const first=f[0],last=f[f.length-1];
+    if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus()}
+    else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus()}
+  });
   // 進捗バーをヘッダー直下に固定
   const fixProg=()=>{const p=document.querySelector('.prog');if(p)p.style.top=document.querySelector('.hdr').offsetHeight+'px'};
   fixProg();window.addEventListener('resize',fixProg);
@@ -208,7 +222,7 @@ function setBarn(key){
 function applyModeUI(){
   [['modeBarn','barn'],['modeWork','work']].forEach(([id,m])=>{
     const b=document.getElementById(id),on=evalMode===m;
-    b.classList.toggle('on',on);b.setAttribute('aria-selected',on);
+    b.classList.toggle('on',on);b.setAttribute('aria-pressed',on);
   });
   document.getElementById('barnbar').style.display=evalMode==='barn'?'':'none';
   document.getElementById('workbar').style.display=evalMode==='work'?'flex':'none';

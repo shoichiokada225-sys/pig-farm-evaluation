@@ -7,7 +7,7 @@ function buildCards(){
   const el=document.getElementById('cards');
   // 作業評価モードで作業未選択なら選択を促すプレースホルダ
   if(evalMode==='work'&&!workSelId){
-    el.innerHTML=`<div class="pickwork"><span class="pw-ic">🐖</span><strong>${t('pickWorkTitle')}</strong><br>${t('pickWorkHint')}</div>`;
+    el.innerHTML=`<div class="pickwork"><svg class="pw-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4a3 3 0 0 1 6 0h3a1 1 0 0 1 1 1v15a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1zm3-1a1 1 0 1 0 0 2 1 1 0 0 0 0-2zM8 10h8v2H8zm0 4h5v2H8z"/></svg><strong>${t('pickWorkTitle')}</strong><br>${t('pickWorkHint')}</div>`;
     updProg();return;
   }
   const secs=getSections(),items=getItems();
@@ -26,7 +26,7 @@ function buildCards(){
         ${cr?`<button class="crit-tg" id="critb-${it.id}" onclick="toggleCrit('${it.id}')" aria-expanded="false" aria-controls="crit-${it.id}">▼ ${t('showCrit')}</button>
         <div class="crit" id="crit-${it.id}">
           <div class="crit-k"><b>${t('kantenLbl')}</b>${esc(cr.kanten)}</div>
-          ${cr.levels.map((lv,li)=>`<div class="crit-lv" data-id="${it.id}" data-s="${li+1}" onclick="pick('${it.id}',${li+1})"><span class="crit-n sb${li+1}">${li+1}</span><div class="crit-t"><b>${t('s'+(li+1))}</b>${esc(lv)}</div></div>`).join('')}
+          ${cr.levels.map((lv,li)=>`<div class="crit-lv" data-id="${it.id}" data-s="${li+1}" role="button" tabindex="0" onclick="pick('${it.id}',${li+1})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();pick('${it.id}',${li+1})}"><span class="crit-n sb${li+1}">${li+1}</span><div class="crit-t"><b>${t('s'+(li+1))}</b>${esc(lv)}</div></div>`).join('')}
         </div>`:''}
         <div class="sr" role="group">${[1,2,3,4,5].map(s=>`<button class="sb" data-id="${it.id}" data-s="${s}" onclick="pick('${it.id}',${s})" aria-pressed="false">${s}<span class="sl">${t('s'+s)}</span></button>`).join('')}</div>
         <div class="clbl">${t('cmtLbl')}</div>
@@ -53,6 +53,8 @@ function updProg(){
   f.style.width=(total?Math.round(done/total*100):0)+'%';
   f.classList.toggle('done',total>0&&done===total);
   tx.textContent=t('progDone')+' '+done+'/'+total;
+  const bar=document.getElementById('progB');
+  if(bar){bar.setAttribute('aria-valuemax',total);bar.setAttribute('aria-valuenow',done);bar.setAttribute('aria-label',t('progDone'))}
 }
 
 /* ==============================================================
@@ -65,8 +67,9 @@ function drawHist(){
   if(!all.length){c.innerHTML=`<div class="nd">${t('noData')}</div>`;return}
   c.innerHTML=all.map(r=>{
     const a=avg(r.scores);
-    const ac=a==='-'?'':(+a>=4?' av4':(+a<2?' av1':(+a<3?' av2':'')));
-    return `<div class="hi" onclick="showDet('${sanitizeId(r.id)}')"><div class="hii"><div class="hid">${esc(r.date)}　${t('evLbl')}: ${esc(r.evaluator)}</div><div class="hin">${esc(r.evaluatee)}${r.workName?`　<span class="hiw">${esc(r.workName)}</span>`:''}</div></div><div class="hia${ac}">${a}</div></div>`;
+    // 平均バッジの色分けは採点の信号色と一致させる（3点台=黄。緑は4以上のみ）
+    const ac=a==='-'?'':(+a>=4?' av4':(+a<2?' av1':(+a<3?' av2':' av3')));
+    return `<div class="hi" role="button" tabindex="0" onclick="showDet('${sanitizeId(r.id)}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();showDet('${sanitizeId(r.id)}')}"><div class="hii"><div class="hid">${esc(r.date)}　${t('evLbl')}: ${esc(r.evaluator)}</div><div class="hin">${esc(r.evaluatee)}${r.workName?`　<span class="hiw">${esc(r.workName)}</span>`:''}</div></div><div class="hia${ac}">${a}</div></div>`;
   }).join('');
 }
 function avg(sc){const v=Object.values(sc).filter(x=>x!=null);return v.length?(v.reduce((a,b)=>a+b,0)/v.length).toFixed(1):'-'}
@@ -74,22 +77,29 @@ function avg(sc){const v=Object.values(sc).filter(x=>x!=null);return v.length?(v
 /* ==============================================================
    詳細モーダル
    ============================================================== */
+let _moRet=null; /* モーダルを開いた要素（閉じたらフォーカスを返す） */
 function showDet(id){
   const r=getAll().find(e=>e.id===id);if(!r)return;
   const av=avg(r.scores);const items=itemsForRecord(r);
-  let h=`<div class="mh"><h3>${esc(r.evaluatee)} - ${esc(r.date)}</h3><button class="mx" onclick="closeMo()">&times;</button></div>`;
+  let h=`<div class="mh"><h3 id="moTitle">${esc(r.evaluatee)} - ${esc(r.date)}</h3><button class="mx" onclick="closeMo()" aria-label="${t('btnClose')}">&times;</button></div>`;
   h+=`<div style="font-size:.85rem;color:var(--sub);margin-bottom:12px">${r.workName?`${t('workNameCol')}: ${esc(r.workName)}　／　`:''}${t('evLbl')}: ${esc(r.evaluator)}　／　${t('avgLbl')}: ${av}</div>`;
   items.forEach(it=>{
     const sc=r.scores[it.id],cm=r.comments[it.id];
     h+=`<div class="di"><div class="dih"><span class="din">${esc(it.name)}</span>${sc?`<span class="dis sb${sc}">${sc}</span>`:''}</div>${cm?`<div class="dic">${esc(cm)}</div>`:''}</div>`;
   });
   if(r.overall)h+=`<div class="dov"><strong>${t('ovLbl')}:</strong><br>${esc(r.overall)}</div>`;
-  h+=`<div class="ma"><button class="b b4" style="flex:1" onclick="startEdit('${sanitizeId(r.id)}')">${t('btnEdit')}</button><button class="b b2" style="flex:1" onclick="doDel('${sanitizeId(r.id)}')">${t('btnDel')}</button><button class="b b3" style="flex:1" onclick="closeMo()">${t('btnClose')}</button></div>`;
+  /* 破壊的操作(削除)は面積・彩度を落として誤タップを防ぐ。主動線=閉じる */
+  h+=`<div class="ma"><button class="b bt-danger" onclick="doDel('${sanitizeId(r.id)}')">${t('btnDel')}</button><button class="b b3" style="flex:1" onclick="startEdit('${sanitizeId(r.id)}')">${t('btnEdit')}</button><button class="b b1" style="flex:1.3" onclick="closeMo()">${t('btnClose')}</button></div>`;
+  _moRet=document.activeElement;
   document.getElementById('moBody').innerHTML=h;
   document.getElementById('modal').classList.add('show');
   document.body.classList.add('mo-open');
+  const mx=document.querySelector('#moBody .mx');if(mx)mx.focus();
 }
-function closeMo(){document.getElementById('modal').classList.remove('show');document.body.classList.remove('mo-open')}
+function closeMo(){
+  document.getElementById('modal').classList.remove('show');document.body.classList.remove('mo-open');
+  if(_moRet&&document.body.contains(_moRet)){_moRet.focus()}_moRet=null;
+}
 function doDel(id){if(!confirm(t('cDel')))return;let all=getAll().filter(e=>e.id!==id);localStorage.setItem(curDataKey(),JSON.stringify({evaluations:all}));closeMo();drawHist();refreshSel();toast(t('tDel'))}
 
 /* ==============================================================
