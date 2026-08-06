@@ -43,7 +43,7 @@ function setScoreUI(id,s){
   document.querySelectorAll('.crit-lv[data-id="'+id+'"]').forEach(r=>r.classList.toggle('sel',+r.dataset.s===s));
   const c=document.getElementById('c-'+id);if(c)c.classList.add('scored');
 }
-function pick(id,s){setScoreUI(id,s);onCh();updProg()}
+function pick(id,s){setScoreUI(id,s);onCh();updProg();if(navigator.vibrate)try{navigator.vibrate(8)}catch(e){}}
 /* 採点進捗バー */
 function updProg(){
   const f=document.getElementById('progF'),tx=document.getElementById('progT');

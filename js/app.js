@@ -26,6 +26,9 @@ document.addEventListener('DOMContentLoaded',()=>{
   restoreDraft();
   window.addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.returnValue=''}});
   refreshSel();
+  // PWAショートカット等からのディープリンク（#pgHi=履歴 / #pgCh=グラフ。設定はPW保護のため対象外）
+  const dl=location.hash.slice(1);
+  if(dl==='pgHi'||dl==='pgCh'){const b=document.querySelector(`.tabs button[data-pg="${dl}"]`);if(b)swTab(b)}
   // 進捗バーをヘッダー直下に固定
   const fixProg=()=>{const p=document.querySelector('.prog');if(p)p.style.top=document.querySelector('.hdr').offsetHeight+'px'};
   fixProg();window.addEventListener('resize',fixProg);
@@ -153,7 +156,8 @@ function swTab(btn){
     if(!pw||pw.toUpperCase()!=='OOIRI'){toast(lang==='ja'?'パスワードが違います':'Wrong password',1);return}
     cfgUnlocked=true;
   }
-  document.querySelectorAll('.tabs button').forEach(b=>b.classList.remove('on'));btn.classList.add('on');
+  document.querySelectorAll('.tabs button').forEach(b=>{b.classList.remove('on');b.removeAttribute('aria-current')});
+  btn.classList.add('on');btn.setAttribute('aria-current','page');
   document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));
   document.getElementById(btn.dataset.pg).classList.add('on');
   if(btn.dataset.pg==='pgHi'){refreshSel();drawHist()}
