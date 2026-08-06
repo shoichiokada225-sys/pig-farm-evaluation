@@ -287,6 +287,36 @@ function ok(name, cond) {
   ok('重複IDは1件に集約', await page.evaluate(() =>
     JSON.parse(localStorage.getItem('pig_farm_evaluation_v1')).evaluations.length) === 1);
 
+  console.log('[17] ディープリンクとナビのaria-current');
+  await page.goto(URL + '#pgHi');
+  await page.waitForTimeout(300);
+  ok('#pgHi で履歴タブが開く', await page.evaluate(() =>
+    document.getElementById('pgHi').classList.contains('on')));
+  ok('aria-current=page が付与', await page.evaluate(() =>
+    document.querySelector('.tabs button[data-pg="pgHi"]').getAttribute('aria-current') === 'page'));
+
+  console.log('[18] トースト種別（エラーは.errクラス、インライン色なし）');
+  await page.evaluate(() => { toast('err test', 1); });
+  ok('エラートーストに.err', await page.evaluate(() =>
+    document.getElementById('toast').classList.contains('err')));
+  await page.evaluate(() => { toast('ok test'); });
+  ok('通常トーストは.errなし・インラインstyle汚染なし', await page.evaluate(() => {
+    const el = document.getElementById('toast');
+    return !el.classList.contains('err') && !el.style.background;
+  }));
+
+  console.log('[19] 多言語ヘッダー：タイトルが言語ボタンに重ならない（回帰）');
+  for (const lg of ['en', 'vi', 'id']) {
+    await page.evaluate(l => setLang(l), lg);
+    await page.waitForTimeout(150);
+    ok(lg + ': h1と言語スイッチャーが非重複', await page.evaluate(() => {
+      const h = document.querySelector('.hdr h1').getBoundingClientRect();
+      const s = document.querySelector('.lsw').getBoundingClientRect();
+      return h.right <= s.left + 1;
+    }));
+  }
+  await page.evaluate(() => setLang('ja'));
+
   ok('ページエラーなし', errors.length === 0);
   if (errors.length) console.log(errors.join('\n'));
 

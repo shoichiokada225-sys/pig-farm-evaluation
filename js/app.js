@@ -27,8 +27,13 @@ document.addEventListener('DOMContentLoaded',()=>{
   window.addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.returnValue=''}});
   refreshSel();
   // PWAショートカット等からのディープリンク（#pgHi=履歴 / #pgCh=グラフ。設定はPW保護のため対象外）
-  const dl=location.hash.slice(1);
-  if(dl==='pgHi'||dl==='pgCh'){const b=document.querySelector(`.tabs button[data-pg="${dl}"]`);if(b)swTab(b)}
+  // 起動中に踏まれた場合は同一ドキュメント遷移になるため hashchange でも拾う
+  const applyDeepLink=()=>{
+    const dl=location.hash.slice(1);
+    if(dl==='pgHi'||dl==='pgCh'){const b=document.querySelector(`.tabs button[data-pg="${dl}"]`);if(b)swTab(b)}
+  };
+  applyDeepLink();
+  window.addEventListener('hashchange',applyDeepLink);
   // 進捗バーをヘッダー直下に固定
   const fixProg=()=>{const p=document.querySelector('.prog');if(p)p.style.top=document.querySelector('.hdr').offsetHeight+'px'};
   fixProg();window.addEventListener('resize',fixProg);

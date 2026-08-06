@@ -444,6 +444,11 @@ body.mo-open{overflow:hidden}
   .hdr h1{font-size:1.12rem}
   .hdr{padding:12px 24px}
 }
+/* 広幅: ヘッダー・バー・下部ナビをコンテンツ列(680px)に揃える */
+@media(min-width:900px){
+  .hdr,.modebar,.barnbar,.ebar{padding-left:calc(50% - 340px);padding-right:calc(50% - 340px)}
+  .tabs{padding-left:calc(50% - 340px);padding-right:calc(50% - 340px)}
+}
 /* タッチ端末: 16px未満の入力欄はiOSがフォーカス時に自動ズームするため16pxへ引き上げ */
 @media(pointer:coarse){
   .ec textarea,.oata,.hctrl select,.chc select,.barnbar select,
