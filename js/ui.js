@@ -23,12 +23,12 @@ function buildCards(){
         <div class="en">${badge}</div>
         <div class="enm">${esc(it.name)}</div>
         ${it.desc?`<div class="ed">${esc(it.desc)}</div>`:''}
-        ${cr?`<button class="crit-tg" id="critb-${it.id}" onclick="toggleCrit('${it.id}')">▼ ${t('showCrit')}</button>
+        ${cr?`<button class="crit-tg" id="critb-${it.id}" onclick="toggleCrit('${it.id}')" aria-expanded="false" aria-controls="crit-${it.id}">▼ ${t('showCrit')}</button>
         <div class="crit" id="crit-${it.id}">
           <div class="crit-k"><b>${t('kantenLbl')}</b>${esc(cr.kanten)}</div>
           ${cr.levels.map((lv,li)=>`<div class="crit-lv" data-id="${it.id}" data-s="${li+1}" onclick="pick('${it.id}',${li+1})"><span class="crit-n sb${li+1}">${li+1}</span><div class="crit-t"><b>${t('s'+(li+1))}</b>${esc(lv)}</div></div>`).join('')}
         </div>`:''}
-        <div class="sr">${[1,2,3,4,5].map(s=>`<button class="sb" data-id="${it.id}" data-s="${s}" onclick="pick('${it.id}',${s})">${s}<span class="sl">${t('s'+s)}</span></button>`).join('')}</div>
+        <div class="sr" role="group">${[1,2,3,4,5].map(s=>`<button class="sb" data-id="${it.id}" data-s="${s}" onclick="pick('${it.id}',${s})" aria-pressed="false">${s}<span class="sl">${t('s'+s)}</span></button>`).join('')}</div>
         <div class="clbl">${t('cmtLbl')}</div>
         <textarea data-cid="${it.id}" placeholder="${t('phCmt')}" oninput="onCh()"></textarea>
       </div>`;
@@ -39,7 +39,7 @@ function buildCards(){
 }
 /* スコア選択のUI反映（点数ボタン・基準リスト両方をハイライト） */
 function setScoreUI(id,s){
-  document.querySelectorAll('.sb[data-id="'+id+'"]').forEach(b=>b.classList.toggle('sel',+b.dataset.s===s));
+  document.querySelectorAll('.sb[data-id="'+id+'"]').forEach(b=>{const on=+b.dataset.s===s;b.classList.toggle('sel',on);b.setAttribute('aria-pressed',on)});
   document.querySelectorAll('.crit-lv[data-id="'+id+'"]').forEach(r=>r.classList.toggle('sel',+r.dataset.s===s));
   const c=document.getElementById('c-'+id);if(c)c.classList.add('scored');
 }
@@ -63,7 +63,11 @@ function drawHist(){
   all.sort((a,b)=>b.date.localeCompare(a.date)||(b.createdAt||'').localeCompare(a.createdAt||''));
   const c=document.getElementById('hList');
   if(!all.length){c.innerHTML=`<div class="nd">${t('noData')}</div>`;return}
-  c.innerHTML=all.map(r=>`<div class="hi" onclick="showDet('${sanitizeId(r.id)}')"><div class="hii"><div class="hid">${esc(r.date)}　${t('evLbl')}: ${esc(r.evaluator)}</div><div class="hin">${esc(r.evaluatee)}${r.workName?`　<span style="font-size:.8rem;font-weight:600;color:var(--pri-d);background:var(--pri-l);border-radius:6px;padding:1px 8px">${esc(r.workName)}</span>`:''}</div></div><div class="hia">${avg(r.scores)}</div></div>`).join('');
+  c.innerHTML=all.map(r=>{
+    const a=avg(r.scores);
+    const ac=a==='-'?'':(+a>=4?' av4':(+a<2?' av1':(+a<3?' av2':'')));
+    return `<div class="hi" onclick="showDet('${sanitizeId(r.id)}')"><div class="hii"><div class="hid">${esc(r.date)}　${t('evLbl')}: ${esc(r.evaluator)}</div><div class="hin">${esc(r.evaluatee)}${r.workName?`　<span class="hiw">${esc(r.workName)}</span>`:''}</div></div><div class="hia${ac}">${a}</div></div>`;
+  }).join('');
 }
 function avg(sc){const v=Object.values(sc).filter(x=>x!=null);return v.length?(v.reduce((a,b)=>a+b,0)/v.length).toFixed(1):'-'}
 
@@ -255,6 +259,7 @@ function toggleCrit(id){
   if(!el||!btn)return;
   const open=el.classList.toggle('open');
   btn.textContent=(open?'▲ ':'▼ ')+t(open?'hideCrit':'showCrit');
+  btn.setAttribute('aria-expanded',open);
 }
 
 let _fs=null;

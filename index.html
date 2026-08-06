@@ -2,9 +2,14 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>HSS 評価システム</title>
-<meta name="theme-color" content="#2e7d6f">
+<meta name="description" content="HSS認定制度の従業員実技評価（豚舎別評価・作業評価）。オフライン対応PWA">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#1b5e50">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="HSS評価">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -14,30 +19,35 @@
 <body>
 
 <header class="hdr">
-  <div style="width:100px"></div>
-  <h1 data-t="appTitle">HSS 評価システム</h1>
-  <div class="lsw">
-    <button class="on" onclick="setLang('ja')">JP</button>
-    <button onclick="setLang('en')">EN</button>
-    <button onclick="setLang('vi')">VI</button>
-    <button onclick="setLang('id')">ID</button>
+  <div class="brand">
+    <span class="brand-mk" aria-hidden="true">🐖</span>
+    <div>
+      <h1 data-t="appTitle">HSS 評価システム</h1>
+      <span class="brand-sub">HSS SKILL EVALUATION</span>
+    </div>
+  </div>
+  <div class="lsw" role="group" aria-label="Language">
+    <button class="on" onclick="setLang('ja')" aria-pressed="true" lang="ja">JP</button>
+    <button onclick="setLang('en')" aria-pressed="false" lang="en">EN</button>
+    <button onclick="setLang('vi')" aria-pressed="false" lang="vi">VI</button>
+    <button onclick="setLang('id')" aria-pressed="false" lang="id">ID</button>
   </div>
 </header>
 
-<div class="modebar">
-  <button id="modeBarn" class="on" onclick="setMode('barn')" data-t="modeBarn">豚舎別評価</button>
-  <button id="modeWork" onclick="setMode('work')" data-t="modeWork">作業評価</button>
+<div class="modebar" role="tablist">
+  <button id="modeBarn" class="on" onclick="setMode('barn')" data-t="modeBarn" role="tab" aria-selected="true">豚舎別評価</button>
+  <button id="modeWork" onclick="setMode('work')" data-t="modeWork" role="tab" aria-selected="false">作業評価</button>
 </div>
 
 <div class="barnbar" id="barnbar">
-  <span class="barnbar-lbl" data-t="barnLbl">🏠 豚舎</span>
-  <select id="barnSel" onchange="setBarn(this.value)"></select>
+  <span class="barnbar-lbl" id="barnLbl" data-t="barnLbl">🏠 豚舎</span>
+  <select id="barnSel" onchange="setBarn(this.value)" aria-labelledby="barnLbl"></select>
 </div>
 
 <div class="barnbar" id="workbar" style="display:none;flex-wrap:wrap;gap:8px">
-  <span class="barnbar-lbl" data-t="workLbl">🐖 作業</span>
-  <select id="workCatSel" onchange="setWorkCat(this.value)" style="flex:1 1 120px"></select>
-  <select id="workSel" onchange="setWork(this.value)" style="flex:1 1 160px"></select>
+  <span class="barnbar-lbl" id="workLbl" data-t="workLbl">🐖 作業</span>
+  <select id="workCatSel" onchange="setWorkCat(this.value)" style="flex:1 1 120px" aria-labelledby="workLbl"></select>
+  <select id="workSel" onchange="setWork(this.value)" style="flex:1 1 160px" aria-labelledby="workLbl"></select>
 </div>
 
 <div class="ebar" id="editBar">
@@ -71,7 +81,7 @@
 <div id="pgHi" class="pg">
   <div class="hctrl">
     <select id="hFil" onchange="drawHist()"><option value="" data-t="filterAll">全員</option></select>
-    <button class="b b3" onclick="doCSV()" style="flex:0 0 auto;padding:10px 16px;font-size:.85rem" data-t="btnCSV">CSV出力</button>
+    <button class="b b3 b-slim" onclick="doCSV()" data-t="btnCSV">CSV出力</button>
   </div>
   <div id="hList" class="hlist"></div>
 </div>
@@ -79,7 +89,7 @@
 <!-- グラフ -->
 <div id="pgCh" class="pg">
   <div class="chc">
-    <label style="font-size:.85rem;font-weight:600;color:var(--sub);display:block;margin-bottom:6px" data-t="selEe">被評価者を選択</label>
+    <label for="chSel" data-t="selEe">被評価者を選択</label>
     <select id="chSel" onchange="drawCharts()"><option value="" data-t="selPh">-- 選択してください --</option></select>
   </div>
   <div id="chArea">
@@ -95,40 +105,40 @@
   <div class="cfg-add">
     <button onclick="addSection()" data-t="addSec">＋ セクション追加</button>
   </div>
-  <div style="margin-top:24px">
-    <button class="b b1" style="width:100%" onclick="saveCfg()" data-t="saveCfg">設定を保存</button>
+  <div class="mt24">
+    <button class="b b1 b-full" onclick="saveCfg()" data-t="saveCfg">設定を保存</button>
   </div>
-  <div style="margin-top:12px">
-    <button class="b b2" style="width:100%" onclick="resetCfg()" data-t="resetCfg">初期設定に戻す</button>
+  <div class="mt12">
+    <button class="b b2 b-full" onclick="resetCfg()" data-t="resetCfg">初期設定に戻す</button>
   </div>
 
-  <div style="margin-top:28px;border-top:1px dashed var(--bdr);padding-top:18px">
-    <p data-t="expHint" style="font-size:.8rem;color:var(--sub);line-height:1.6;margin:0 0 12px">別のPCへ評価項目を渡すには「書き出し」でファイルを保存し、そのファイルを相手のPCの「読み込み」で取り込みます。</p>
-    <button class="b b4" style="width:100%" onclick="exportCfg()" data-t="expCfg">⬇ 項目を書き出し（ファイル保存）</button>
-    <div style="margin-top:12px">
-      <button class="b b3" style="width:100%" onclick="document.getElementById('impFile').click()" data-t="impCfg">⬆ 項目を読み込み（ファイルから）</button>
+  <div class="cfg-blk">
+    <p data-t="expHint" class="cfg-hint">別のPCへ評価項目を渡すには「書き出し」でファイルを保存し、そのファイルを相手のPCの「読み込み」で取り込みます。</p>
+    <button class="b b4 b-full" onclick="exportCfg()" data-t="expCfg">⬇ 項目を書き出し（ファイル保存）</button>
+    <div class="mt12">
+      <button class="b b3 b-full" onclick="document.getElementById('impFile').click()" data-t="impCfg">⬆ 項目を読み込み（ファイルから）</button>
     </div>
     <input type="file" id="impFile" accept="application/json,.json" style="display:none" onchange="importCfg(this)">
   </div>
 
-  <div style="margin-top:28px;border-top:1px dashed var(--bdr);padding-top:18px">
-    <p data-t="backupHint" style="font-size:.8rem;color:var(--sub);line-height:1.6;margin:0 0 12px">端末の故障や誤消去に備えて、全豚舎の評価データと項目を1ファイルに保存できます。復元では既存の記録は残り、新しい記録だけが追加されます。</p>
-    <button class="b b4" style="width:100%" onclick="exportAll()" data-t="expAll">⬇ 全データをバックアップ（評価＋項目）</button>
-    <div style="margin-top:12px">
-      <button class="b b3" style="width:100%" onclick="document.getElementById('impAllFile').click()" data-t="impAll">⬆ バックアップから復元</button>
+  <div class="cfg-blk">
+    <p data-t="backupHint" class="cfg-hint">端末の故障や誤消去に備えて、全豚舎の評価データと項目を1ファイルに保存できます。復元では既存の記録は残り、新しい記録だけが追加されます。</p>
+    <button class="b b4 b-full" onclick="exportAll()" data-t="expAll">⬇ 全データをバックアップ（評価＋項目）</button>
+    <div class="mt12">
+      <button class="b b3 b-full" onclick="document.getElementById('impAllFile').click()" data-t="impAll">⬆ バックアップから復元</button>
     </div>
     <input type="file" id="impAllFile" accept="application/json,.json" style="display:none" onchange="importAll(this)">
   </div>
 </div>
 
 <!-- モーダル -->
-<div class="mo" id="modal" onclick="if(event.target===this)closeMo()">
+<div class="mo" id="modal" role="dialog" aria-modal="true" onclick="if(event.target===this)closeMo()">
   <div class="mc" id="moBody"></div>
 </div>
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <!-- タブ -->
-<nav class="tabs">
+<nav class="tabs" aria-label="Main">
   <button class="on" data-pg="pgIn" onclick="swTab(this)">
     <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zM14 3.5L18.5 8H14V3.5zM6 20V4h6v6h6v10H6z"/><path d="M8 13h8v1.5H8zM8 16h5v1.5H8z"/></svg>
     <span data-t="tabIn">入力</span>

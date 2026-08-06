@@ -4,7 +4,7 @@
    ============================================================== */
 function setLang(l){
   lang=l;localStorage.setItem(LKEY,l);document.documentElement.lang=l;
-  document.querySelectorAll('.lsw button').forEach(b=>b.classList.toggle('on',b.textContent.trim()==={ja:'JP',en:'EN',vi:'VI',id:'ID'}[l]));
+  document.querySelectorAll('.lsw button').forEach(b=>{const on=b.textContent.trim()==={ja:'JP',en:'EN',vi:'VI',id:'ID'}[l];b.classList.toggle('on',on);b.setAttribute('aria-pressed',on)});
   applyT();buildCards();restoreSt();buildCfgUI();
   if(evalMode==='work'){populateWorkCat();populateWorkSel();}
 }
@@ -197,8 +197,10 @@ function setBarn(key){
    評価モード（豚舎別 / 作業）の切替と作業選択
    ============================================================== */
 function applyModeUI(){
-  document.getElementById('modeBarn').classList.toggle('on',evalMode==='barn');
-  document.getElementById('modeWork').classList.toggle('on',evalMode==='work');
+  [['modeBarn','barn'],['modeWork','work']].forEach(([id,m])=>{
+    const b=document.getElementById(id),on=evalMode===m;
+    b.classList.toggle('on',on);b.setAttribute('aria-selected',on);
+  });
   document.getElementById('barnbar').style.display=evalMode==='barn'?'':'none';
   document.getElementById('workbar').style.display=evalMode==='work'?'flex':'none';
 }
