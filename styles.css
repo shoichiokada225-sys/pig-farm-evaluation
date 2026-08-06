@@ -136,16 +136,8 @@ button{touch-action:manipulation}
 
 .cd{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);padding:16px;margin-bottom:12px;box-shadow:var(--sh)}
 
-/* 評価カードの入場を段階表示（先頭8枚まで、以降は即表示） */
-#cards>div{animation:cdin .3s ease-out backwards}
-#cards>div:nth-child(1){animation-delay:.02s}
-#cards>div:nth-child(2){animation-delay:.05s}
-#cards>div:nth-child(3){animation-delay:.08s}
-#cards>div:nth-child(4){animation-delay:.11s}
-#cards>div:nth-child(5){animation-delay:.14s}
-#cards>div:nth-child(6){animation-delay:.17s}
-#cards>div:nth-child(7){animation-delay:.20s}
-#cards>div:nth-child(8){animation-delay:.23s}
+/* 評価カードの入場を段階表示（遅延はJS側でカード通し番号から付与。見出しは対象外） */
+#cards>.cd{animation:cdin .3s ease-out backwards}
 @keyframes cdin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 
 /* セクション見出し */

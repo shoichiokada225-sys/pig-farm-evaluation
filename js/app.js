@@ -33,7 +33,11 @@ document.addEventListener('DOMContentLoaded',()=>{
   // 起動中に踏まれた場合は同一ドキュメント遷移になるため hashchange でも拾う
   const applyDeepLink=()=>{
     const dl=location.hash.slice(1);
-    if(dl==='pgHi'||dl==='pgCh'){const b=document.querySelector(`.tabs button[data-pg="${dl}"]`);if(b)swTab(b)}
+    if(dl==='pgHi'||dl==='pgCh'){
+      const b=document.querySelector(`.tabs button[data-pg="${dl}"]`);if(b)swTab(b);
+      // 消費したハッシュはクリアする（PWA再起動時に前回のタブへ強制遷移するのを防ぐ）
+      history.replaceState(null,'',location.pathname+location.search);
+    }
   };
   applyDeepLink();
   window.addEventListener('hashchange',applyDeepLink);

@@ -11,7 +11,7 @@ function buildCards(){
     updProg();return;
   }
   const secs=getSections(),items=getItems();
-  let h='';
+  let h='',ci=0; /* ci=カード通し番号（段階入場の遅延用。見出しは数えない） */
   secs.forEach((sec,si)=>{
     const secItems=items.filter(it=>it.secId===sec.id);
     if(!secItems.length)return;
@@ -19,7 +19,7 @@ function buildCards(){
     secItems.forEach((it,ii)=>{
       const cr=getCriteria(it);
       const badge=evalMode==='work'?(ii+1):(esc(sec.name.charAt(0))+'-'+(ii+1));
-      h+=`<div class="cd ec" id="c-${it.id}">
+      h+=`<div class="cd ec" id="c-${it.id}" style="animation-delay:${Math.min(ci++,8)*0.03}s">
         <div class="en">${badge}</div>
         <div class="enm">${esc(it.name)}</div>
         ${it.desc?`<div class="ed">${esc(it.desc)}</div>`:''}
