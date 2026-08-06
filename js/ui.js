@@ -87,8 +87,9 @@ function showDet(id){
   h+=`<div class="ma"><button class="b b4" style="flex:1" onclick="startEdit('${sanitizeId(r.id)}')">${t('btnEdit')}</button><button class="b b2" style="flex:1" onclick="doDel('${sanitizeId(r.id)}')">${t('btnDel')}</button><button class="b b3" style="flex:1" onclick="closeMo()">${t('btnClose')}</button></div>`;
   document.getElementById('moBody').innerHTML=h;
   document.getElementById('modal').classList.add('show');
+  document.body.classList.add('mo-open');
 }
-function closeMo(){document.getElementById('modal').classList.remove('show')}
+function closeMo(){document.getElementById('modal').classList.remove('show');document.body.classList.remove('mo-open')}
 function doDel(id){if(!confirm(t('cDel')))return;let all=getAll().filter(e=>e.id!==id);localStorage.setItem(curDataKey(),JSON.stringify({evaluations:all}));closeMo();drawHist();refreshSel();toast(t('tDel'))}
 
 /* ==============================================================
@@ -131,7 +132,7 @@ function drawCharts(){
   area.style.display='block';none.style.display='none';
   all.sort((a,b)=>a.date.localeCompare(b.date));
   if(cL)cL.destroy();
-  cL=new Chart(document.getElementById('cvL'),{type:'line',data:{labels:all.map(e=>e.date),datasets:[{label:t('chAvg'),data:all.map(e=>parseFloat(avg(e.scores))),borderColor:'#2e7d6f',backgroundColor:'rgba(46,125,111,.1)',fill:true,tension:.3,pointRadius:5,pointBackgroundColor:'#2e7d6f'}]},options:{responsive:true,maintainAspectRatio:false,scales:{y:{min:1,max:5,ticks:{stepSize:1}}},plugins:{legend:{display:false}}}});
+  cL=new Chart(document.getElementById('cvL'),{type:'line',data:{labels:all.map(e=>e.date),datasets:[{label:t('chAvg'),data:all.map(e=>parseFloat(avg(e.scores))),borderColor:'#177863',backgroundColor:'rgba(23,120,99,.10)',fill:true,tension:.3,pointRadius:5,pointHoverRadius:7,pointBackgroundColor:'#177863'}]},options:{responsive:true,maintainAspectRatio:false,scales:{y:{min:1,max:5,ticks:{stepSize:1,color:'#54635d'},grid:{color:'#e3eae7'}},x:{ticks:{color:'#54635d'},grid:{color:'#eef2f0'}}},plugins:{legend:{display:false}}}});
   const lat=all[all.length-1];
   // レーダーの項目はレコード基準（作業評価は最新レコードの作業の観点）。前回は同一作業の直前レコード
   const items=itemsForRecord(lat);
@@ -139,9 +140,9 @@ function drawCharts(){
   const prev=series.length>1?series[series.length-2]:null;
   if(cR)cR.destroy();
   cR=new Chart(document.getElementById('cvR'),{type:'radar',data:{labels:items.map(it=>{const n=it.name;return n.length>6?n.slice(0,6)+'…':n}),datasets:[
-    {label:lat.date,data:items.map(it=>lat.scores[it.id]||0),borderColor:'#2e7d6f',backgroundColor:'rgba(46,125,111,.2)',pointBackgroundColor:'#2e7d6f'},
+    {label:lat.date,data:items.map(it=>lat.scores[it.id]||0),borderColor:'#177863',backgroundColor:'rgba(23,120,99,.18)',pointBackgroundColor:'#177863'},
     ...(prev?[{label:prev.date+'（'+t('prevLbl')+'）',data:items.map(it=>prev.scores[it.id]||0),borderColor:'#9e9e9e',backgroundColor:'rgba(158,158,158,.08)',pointBackgroundColor:'#9e9e9e',borderDash:[5,4],borderWidth:1.5}]:[])
-  ]},options:{responsive:true,maintainAspectRatio:false,scales:{r:{min:0,max:5,ticks:{stepSize:1,font:{size:10}},pointLabels:{font:{size:11}}}},plugins:{legend:{display:true,position:'bottom'}}}});
+  ]},options:{responsive:true,maintainAspectRatio:false,scales:{r:{min:0,max:5,ticks:{stepSize:1,font:{size:10},color:'#54635d',backdropColor:'rgba(255,255,255,.75)'},grid:{color:'#e3eae7'},angleLines:{color:'#e3eae7'},pointLabels:{font:{size:11},color:'#14211c'}}},plugins:{legend:{display:true,position:'bottom'}}}});
 }
 
 /* ==============================================================
