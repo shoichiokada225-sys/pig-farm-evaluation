@@ -317,6 +317,81 @@ function ok(name, cond) {
   }
   await page.evaluate(() => setLang('ja'));
 
+  console.log('[20] バックアップ復元：不正スコア値の無害化とcomments欠落への耐性（回帰）');
+  const evilPath = require('path').join(require('os').tmpdir(), 'hss_backup_evil.json');
+  const XSS_SCORE = '1"><img src=x onerror="window.__pwned=1">';
+  require('fs').writeFileSync(evilPath, JSON.stringify({
+    _type: 'pig_farm_eval_backup', version: 1,
+    barns: {
+      farrow: {
+        // comments キーごと欠落したレコード（旧版・手編集JSONを想定）
+        data: { evaluations: [{ id: 'evil-1', date: '2026-08-01', evaluator: '岡田', evaluatee: '細工太郎', scores: { item1: XSS_SCORE, item2: 99, item3: 4 } }] },
+        items: null,
+      },
+    },
+  }), 'utf8');
+  await page.evaluate(() => localStorage.clear());
+  await page.reload();
+  await page.waitForTimeout(200);
+  await page.click('.tabs button[data-pg="pgCfg"]');
+  await page.waitForTimeout(300);
+  const [fc4] = await Promise.all([
+    page.waitForEvent('filechooser'),
+    page.click('text=バックアップから復元'),
+  ]);
+  await fc4.setFiles(evilPath);
+  await page.waitForTimeout(500);
+  const evilRec = await page.evaluate(() =>
+    JSON.parse(localStorage.getItem('pig_farm_evaluation_v1')).evaluations[0]);
+  ok('文字列スコアはnullへ正規化', evilRec.scores.item1 === null);
+  ok('範囲外スコア(99)はnullへ正規化', evilRec.scores.item2 === null);
+  ok('正常スコア(4)はそのまま保持', evilRec.scores.item3 === 4);
+  ok('欠落したcommentsがオブジェクトで補完される', !!evilRec.comments && typeof evilRec.comments === 'object');
+  await page.click('.tabs button[data-pg="pgHi"]');
+  await page.waitForTimeout(200);
+  ok('履歴が描画される（平均計算が落ちない）', await page.locator('.hi').count() === 1);
+  ok('平均は正常スコアのみで4.0', (await page.locator('.hi .hia').textContent()) === '4.0');
+  await page.click('.hi');
+  await page.waitForTimeout(200);
+  ok('詳細モーダルが開く（comments欠落でも落ちない）', await page.locator('#modal.show').count() === 1);
+  ok('スコア経由のXSSが発火しない', await page.evaluate(() => !window.__pwned));
+  ok('注入されたimgタグがDOMに無い', await page.locator('#moBody img').count() === 0);
+  await page.click('#moBody .mx');
+  await page.waitForTimeout(150);
+
+  console.log('[21] 編集対象が消えている場合、更新を成功扱いにしない（回帰）');
+  await page.evaluate(() => localStorage.clear());
+  await page.reload();
+  await page.waitForTimeout(200);
+  await page.fill('#fEv', '岡田');
+  await page.fill('#fEe', '消える太郎');
+  for (let i = 1; i <= 10; i++) await page.click(`.sb[data-id="item${i}"][data-s="3"]`);
+  await page.click('#btnSave');
+  await page.waitForTimeout(300);
+  await page.click('.tabs button[data-pg="pgHi"]');
+  await page.waitForTimeout(150);
+  await page.click('.hi');
+  await page.waitForTimeout(200);
+  await page.click('#moBody .b3');   // 編集
+  await page.waitForTimeout(300);
+  ok('編集モードに入る', await page.locator('#editBar.show').count() === 1);
+  // 別タブ／別端末で当該レコードが削除された状況を再現
+  await page.evaluate(() => localStorage.setItem('pig_farm_evaluation_v1', JSON.stringify({ evaluations: [] })));
+  await page.fill('#fOv', '編集した所感');
+  await page.waitForTimeout(500);   // debounce 300ms → 下書き保存
+  await page.click('#btnSave');
+  await page.waitForTimeout(300);
+  const t21 = await page.locator('#toast').textContent();
+  ok('「更新しました」と偽らない', !t21.includes('更新しました'));
+  ok('記録が見つからない旨を通知', t21.includes('見つかりません'));
+  ok('エラートーストとして表示', await page.locator('#toast.err').count() === 1);
+  ok('編集モードは解除される', await page.locator('#editBar.show').count() === 0);
+  ok('入力内容はフォームに残る', await page.inputValue('#fOv') === '編集した所感');
+  ok('下書きも消されない', await page.evaluate(() => {
+    const d = localStorage.getItem('pig_farm_evaluation_v1_draft');
+    return !!d && JSON.parse(d).overall === '編集した所感';
+  }));
+
   ok('ページエラーなし', errors.length === 0);
   if (errors.length) console.log(errors.join('\n'));
 

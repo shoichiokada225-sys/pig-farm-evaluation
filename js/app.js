@@ -92,7 +92,10 @@ function doSave(){
   const key=curDataKey(),all=getAll();
   if(editId){
     const idx=all.findIndex(e=>e.id===editId);
-    if(idx!==-1)all[idx]={...all[idx],...wf,date:d.date,evaluator:d.evaluator.trim(),evaluatee:d.evaluatee.trim(),scores:d.scores,comments:d.comments,overall:d.overall,updatedAt:new Date().toISOString()};
+    // 対象が別タブ等で削除済みの場合、以前は「更新しました」と出しつつ内容を捨てていた。
+    // 入力を失わないよう下書きを残したまま編集を解除して通知する。
+    if(idx===-1){toast(t('eEditGone'),1);exitEdit();return}
+    all[idx]={...all[idx],...wf,date:d.date,evaluator:d.evaluator.trim(),evaluatee:d.evaluatee.trim(),scores:d.scores,comments:d.comments,overall:d.overall,updatedAt:new Date().toISOString()};
     localStorage.setItem(key,JSON.stringify({evaluations:all}));toast(t('tUpdated'));exitEdit();
   }else{
     all.push({id:crypto.randomUUID(),...wf,date:d.date,evaluator:d.evaluator.trim(),evaluatee:d.evaluatee.trim(),scores:d.scores,comments:d.comments,overall:d.overall,createdAt:new Date().toISOString()});

@@ -72,7 +72,8 @@ function drawHist(){
     return `<div class="hi" role="button" tabindex="0" onclick="showDet('${sanitizeId(r.id)}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();showDet('${sanitizeId(r.id)}')}"><div class="hii"><div class="hid">${esc(r.date)}　${t('evLbl')}: ${esc(r.evaluator)}</div><div class="hin">${esc(r.evaluatee)}${r.workName?`　<span class="hiw">${esc(r.workName)}</span>`:''}</div></div><div class="hia${ac}">${a}</div></div>`;
   }).join('');
 }
-function avg(sc){const v=Object.values(sc).filter(x=>x!=null);return v.length?(v.reduce((a,b)=>a+b,0)/v.length).toFixed(1):'-'}
+/* 平均点。数値以外（文字列スコア等）が混ざると reduce が文字列連結になり toFixed で落ちるため型で弾く */
+function avg(sc){const v=Object.values(sc||{}).filter(x=>x!=null).map(Number).filter(x=>Number.isFinite(x));return v.length?(v.reduce((a,b)=>a+b,0)/v.length).toFixed(1):'-'}
 
 /* ==============================================================
    詳細モーダル
@@ -83,8 +84,10 @@ function showDet(id){
   const av=avg(r.scores);const items=itemsForRecord(r);
   let h=`<div class="mh"><h3 id="moTitle">${esc(r.evaluatee)} - ${esc(r.date)}</h3><button class="mx" onclick="closeMo()" aria-label="${t('btnClose')}">&times;</button></div>`;
   h+=`<div style="font-size:.85rem;color:var(--sub);margin-bottom:12px">${r.workName?`${t('workNameCol')}: ${esc(r.workName)}　／　`:''}${t('evLbl')}: ${esc(r.evaluator)}　／　${t('avgLbl')}: ${av}</div>`;
+  const cms=r.comments||{};
   items.forEach(it=>{
-    const sc=r.scores[it.id],cm=r.comments[it.id];
+    /* スコアは取り込み時にnormRecで1〜5へ正規化済みだが、旧データ混在に備えて描画側でも数値化する */
+    const n=Number(r.scores[it.id]),sc=Number.isInteger(n)&&n>=1&&n<=5?n:0,cm=cms[it.id];
     h+=`<div class="di"><div class="dih"><span class="din">${esc(it.name)}</span>${sc?`<span class="dis sb${sc}">${sc}</span>`:''}</div>${cm?`<div class="dic">${esc(cm)}</div>`:''}</div>`;
   });
   if(r.overall)h+=`<div class="dov"><strong>${t('ovLbl')}:</strong><br>${esc(r.overall)}</div>`;
@@ -112,8 +115,9 @@ function doCSV(){
     const whd=['評価日','評価者','被評価者','カテゴリ','作業','観点','スコア','コメント','平均点','全体所感','作成日時'];
     let wcsv='\uFEFF'+whd.map(csvCell).join(',')+'\n';
     all.forEach(r=>{
+      const cms=r.comments||{};
       itemsForRecord(r).forEach(it=>{
-        const row=[r.date,r.evaluator,r.evaluatee,catLabel(r.category||''),r.workName||'',it.name,r.scores[it.id]||'',r.comments[it.id]||'',avg(r.scores),r.overall||'',r.createdAt||''];
+        const row=[r.date,r.evaluator,r.evaluatee,catLabel(r.category||''),r.workName||'',it.name,r.scores[it.id]||'',cms[it.id]||'',avg(r.scores),r.overall||'',r.createdAt||''];
         wcsv+=row.map(csvCell).join(',')+'\n';
       });
     });
@@ -123,7 +127,7 @@ function doCSV(){
   }
   const items=getItems();
   const hd=['評価日','評価者','被評価者',...items.map(it=>it.name+'(スコア)'),...items.map(it=>it.name+'(コメント)'),'平均点','全体所感','作成日時'];
-  const rows=all.map(r=>[r.date,r.evaluator,r.evaluatee,...items.map(it=>r.scores[it.id]||''),...items.map(it=>r.comments[it.id]||''),avg(r.scores),r.overall||'',r.createdAt||'']);
+  const rows=all.map(r=>[r.date,r.evaluator,r.evaluatee,...items.map(it=>r.scores[it.id]||''),...items.map(it=>(r.comments||{})[it.id]||''),avg(r.scores),r.overall||'',r.createdAt||'']);
   let csv='\uFEFF'+hd.map(csvCell).join(',')+'\n';
   rows.forEach(r=>{csv+=r.map(csvCell).join(',')+'\n'});
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'}));

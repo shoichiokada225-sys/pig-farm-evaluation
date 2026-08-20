@@ -113,6 +113,24 @@ function exportAll(){
   toast(t('tBackupExp'));
 }
 function validRec(r){return r&&typeof r==='object'&&typeof r.id==='string'&&typeof r.date==='string'&&r.scores&&typeof r.scores==='object'}
+/* 取り込むレコードを安全な形へ正規化する。
+   validRec はスコア値やコメントの中身までは見ないため、細工したバックアップJSONの
+   scores 値（例: 1"><img src=x onerror=...>）がそのまま詳細モーダルのHTMLへ流れ込む。
+   平均点の集計も文字列混入で壊れるので、入口で 1〜5 の整数 or null に潰す。 */
+function normRec(e){
+  const sc={},cm={};
+  const rawSc=e.scores&&typeof e.scores==='object'?e.scores:{};
+  Object.keys(rawSc).forEach(k=>{const n=Number(rawSc[k]);sc[sanitizeId(k)]=Number.isInteger(n)&&n>=1&&n<=5?n:null});
+  const rawCm=e.comments&&typeof e.comments==='object'?e.comments:{};
+  Object.keys(rawCm).forEach(k=>{cm[sanitizeId(k)]=rawCm[k]==null?'':String(rawCm[k])});
+  const r={...e,id:sanitizeId(e.id),date:String(e.date||''),
+    evaluator:String(e.evaluator||''),evaluatee:String(e.evaluatee||''),
+    overall:e.overall==null?'':String(e.overall),scores:sc,comments:cm};
+  if(e.workId!=null)r.workId=sanitizeId(e.workId);
+  if(e.workName!=null)r.workName=String(e.workName);
+  if(e.category!=null)r.category=String(e.category);
+  return r;
+}
 function importAll(input){
   const file=input.files&&input.files[0];if(!file)return;
   const rd=new FileReader();
@@ -130,7 +148,7 @@ function importAll(input){
       if(evs.length){
         let cur=[];try{const r=localStorage.getItem(k.s);cur=r?JSON.parse(r).evaluations||[]:[]}catch{}
         const ids=new Set(cur.map(e=>e.id));
-        evs.forEach(e=>{const id=sanitizeId(e.id);if(!ids.has(id)){ids.add(id);cur.push({...e,id});added++}});
+        evs.forEach(e=>{const r=normRec(e);if(!ids.has(r.id)){ids.add(r.id);cur.push(r);added++}});
         localStorage.setItem(k.s,JSON.stringify({evaluations:cur}));
       }
       // 評価項目：ファイル側があれば上書き（IDはサニタイズ）
@@ -145,7 +163,7 @@ function importAll(input){
     if(wevs.length){
       let cur=[];try{const r=localStorage.getItem(WORK_SKEY);cur=r?JSON.parse(r).evaluations||[]:[]}catch{}
       const ids=new Set(cur.map(e=>e.id));
-      wevs.forEach(e=>{const id=sanitizeId(e.id);if(!ids.has(id)){ids.add(id);cur.push({...e,id});added++}});
+      wevs.forEach(e=>{const r=normRec(e);if(!ids.has(r.id)){ids.add(r.id);cur.push(r);added++}});
       localStorage.setItem(WORK_SKEY,JSON.stringify({evaluations:cur}));
     }
     cfg=loadCfg();
