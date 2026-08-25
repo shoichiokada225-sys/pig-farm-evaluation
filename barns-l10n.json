@@ -1,0 +1,312 @@
+{
+ "はじかれ豚の管理、群分け・別飼いの対応": {
+  "en": "Managing left-out pigs, grouping and separate penning",
+  "vi": "Quản lý lợn bị chèn ép, chia nhóm và nuôi riêng",
+  "id": "Penanganan babi yang tersisih, pembagian kelompok dan pemeliharaan terpisah"
+ },
+ "ストール清掃、器具消毒、防疫意識": {
+  "en": "Stall cleaning, equipment disinfection, biosecurity awareness",
+  "vi": "Vệ sinh cũi cá thể, khử trùng dụng cụ, ý thức phòng dịch",
+  "id": "Pembersihan kandang stall, disinfeksi peralatan, kesadaran biosekuriti"
+ },
+ "ストール舎": {
+  "en": "Stall barn",
+  "vi": "Chuồng cũi cá thể",
+  "id": "Kandang stall"
+ },
+ "ストール舎業務": {
+  "en": "Stall barn duties",
+  "vi": "Công việc chuồng cũi cá thể",
+  "id": "Tugas kandang stall"
+ },
+ "ニップルの点検、水量・水質の確認": {
+  "en": "Nipple drinker checks, confirming water flow and quality",
+  "vi": "Kiểm tra núm uống nước, xác nhận lưu lượng và chất lượng nước",
+  "id": "Pemeriksaan nipple air minum, pengecekan jumlah dan kualitas air"
+ },
+ "ボディコンディション、給餌量の調整、削痩・過肥の防止": {
+  "en": "Body condition, adjusting feed amount, preventing thinness and over-fatness",
+  "vi": "Thể trạng, điều chỉnh lượng thức ăn cho ăn, phòng tránh gầy sút và quá béo",
+  "id": "Kondisi tubuh, penyesuaian jumlah pakan yang diberikan, pencegahan terlalu kurus dan terlalu gemuk"
+ },
+ "下痢・呼吸器症状・削痩の早期発見": {
+  "en": "Early detection of diarrhea, respiratory signs, and wasting",
+  "vi": "Phát hiện sớm tiêu chảy, triệu chứng hô hấp, gầy sút",
+  "id": "Deteksi dini diare, gejala pernapasan, dan tubuh kurus"
+ },
+ "不受胎・流産の早期発見、再種付けの管理": {
+  "en": "Early detection of failed conception and abortion, rebreeding management",
+  "vi": "Phát hiện sớm không thụ thai và sảy thai, quản lý phối giống lại",
+  "id": "Deteksi dini kegagalan bunting dan keguguran, pengelolaan perkawinan ulang"
+ },
+ "人工哺乳、里子調整、離乳作業の段取り": {
+  "en": "Artificial milk feeding, cross-fostering arrangements, planning weaning work",
+  "vi": "Cho bú nhân tạo, sắp xếp ghép bầy (cho nái khác nuôi), chuẩn bị công việc cai sữa",
+  "id": "Pemberian susu buatan, pengaturan titip anak ke induk lain, persiapan pekerjaan sapih"
+ },
+ "介助タイミング、難産時の処置、分娩記録の正確性": {
+  "en": "Timing of assistance, handling difficult births, accuracy of farrowing records",
+  "vi": "Thời điểm hỗ trợ đỡ đẻ, xử lý khi đẻ khó, độ chính xác của ghi chép về đẻ",
+  "id": "Waktu membantu kelahiran, penanganan saat melahirkan sulit, keakuratan catatan kelahiran"
+ },
+ "仕事への姿勢": {
+  "en": "Work attitude",
+  "vi": "Thái độ làm việc",
+  "id": "Sikap kerja"
+ },
+ "保温、温度ムラ・すきま風の防止、換気": {
+  "en": "Keeping warm, preventing uneven temperature and drafts, ventilation",
+  "vi": "Giữ ấm, phòng tránh nhiệt độ không đều và gió lùa, thông gió",
+  "id": "Menghangatkan, pencegahan suhu tidak merata dan angin dari celah, ventilasi"
+ },
+ "健康観察・疾病対応": {
+  "en": "Health observation and disease response",
+  "vi": "Quan sát sức khỏe và xử lý bệnh",
+  "id": "Pengamatan kesehatan dan penanganan penyakit"
+ },
+ "出荷管理": {
+  "en": "Shipping management",
+  "vi": "Quản lý xuất chuồng",
+  "id": "Manajemen pengiriman"
+ },
+ "出荷適期の判断、体重測定、選別・積込の段取り": {
+  "en": "Judging the right time to ship, weighing, planning sorting and loading",
+  "vi": "Đánh giá thời điểm xuất chuồng thích hợp, đo cân nặng, sắp xếp phân loại và chất lên xe",
+  "id": "Menilai waktu pengiriman yang tepat, penimbangan berat badan, persiapan menyortir dan memuat"
+ },
+ "分娩介助の対応": {
+  "en": "Farrowing assistance",
+  "vi": "Hỗ trợ đỡ đẻ",
+  "id": "Membantu proses kelahiran"
+ },
+ "分娩舎": {
+  "en": "Farrowing barn",
+  "vi": "Chuồng đẻ",
+  "id": "Kandang beranak"
+ },
+ "分娩舎業務": {
+  "en": "Farrowing barn duties",
+  "vi": "Công việc chuồng đẻ",
+  "id": "Tugas kandang beranak"
+ },
+ "初乳給与、去勢・歯切り・断尾・体重測定などの処置": {
+  "en": "Colostrum feeding; procedures such as castration, teeth clipping, tail docking, and weighing",
+  "vi": "Cho bú sữa non; các xử lý như thiến, cắt răng, cắt đuôi, đo cân nặng",
+  "id": "Pemberian kolostrum; penanganan seperti kastrasi, memotong gigi, memotong ekor, penimbangan berat badan"
+ },
+ "呼吸器・消化器症状、尾かじり等の早期発見と対応": {
+  "en": "Early detection and response to respiratory or digestive signs, tail biting, etc.",
+  "vi": "Phát hiện sớm và xử lý triệu chứng hô hấp, tiêu hóa, cắn đuôi, v.v.",
+  "id": "Deteksi dini dan penanganan gejala pernapasan, pencernaan, gigit ekor, dll."
+ },
+ "哺乳・離乳管理": {
+  "en": "Suckling and weaning management",
+  "vi": "Quản lý cho con bú và cai sữa",
+  "id": "Manajemen menyusui dan sapih"
+ },
+ "報連相とチームワーク": {
+  "en": "Reporting, informing, consulting (ho-ren-so) and teamwork",
+  "vi": "Báo cáo - liên lạc - trao đổi (hō-ren-sō) và làm việc nhóm",
+  "id": "Lapor - informasikan - konsultasi (horenso) dan kerja sama tim"
+ },
+ "増体・発育の観察": {
+  "en": "Monitoring weight gain and growth",
+  "vi": "Quan sát tăng trọng và phát triển",
+  "id": "Pengamatan pertambahan berat badan dan pertumbuhan"
+ },
+ "妊娠鑑定・再発チェック": {
+  "en": "Pregnancy checking and return-to-heat checks",
+  "vi": "Chẩn đoán mang thai và kiểm tra động dục trở lại",
+  "id": "Diagnosa kebuntingan dan pemeriksaan birahi kembali"
+ },
+ "始業前準備、遅刻欠勤、身だしなみ": {
+  "en": "Preparation before work, lateness and absence, personal grooming",
+  "vi": "Chuẩn bị trước giờ làm, đi trễ và vắng mặt, trang phục gọn gàng",
+  "id": "Persiapan sebelum kerja, keterlambatan dan absen, kerapian penampilan"
+ },
+ "子豚のケア": {
+  "en": "Piglet care",
+  "vi": "Chăm sóc lợn con",
+  "id": "Perawatan anak babi"
+ },
+ "子豚の健康観察": {
+  "en": "Piglet health observation",
+  "vi": "Quan sát sức khỏe lợn con",
+  "id": "Pengamatan kesehatan anak babi"
+ },
+ "子豚舎（離乳舎）": {
+  "en": "Nursery barn (weaner barn)",
+  "vi": "Chuồng lợn con (chuồng cai sữa)",
+  "id": "Kandang anak babi (kandang sapih)"
+ },
+ "子豚舎（離乳舎）業務": {
+  "en": "Nursery barn (weaner barn) duties",
+  "vi": "Công việc chuồng lợn con (chuồng cai sữa)",
+  "id": "Tugas kandang anak babi (kandang sapih)"
+ },
+ "情報共有、協力姿勢、引き継ぎの正確さ": {
+  "en": "Information sharing, cooperativeness, accuracy of handovers",
+  "vi": "Chia sẻ thông tin, tinh thần hợp tác, bàn giao chính xác",
+  "id": "Berbagi informasi, sikap kooperatif, keakuratan serah terima"
+ },
+ "成長のばらつき、発育不良豚の選別と対応": {
+  "en": "Growth variation; sorting and handling poor-growing pigs",
+  "vi": "Chênh lệch tăng trưởng; phân loại và xử lý lợn chậm lớn",
+  "id": "Variasi pertumbuhan; menyortir dan menangani babi yang pertumbuhannya buruk"
+ },
+ "提案、振り返り、新しい知識の習得意欲": {
+  "en": "Suggestions, reflection, eagerness to learn new knowledge",
+  "vi": "Đề xuất, nhìn lại công việc, tinh thần học hỏi kiến thức mới",
+  "id": "Usulan, evaluasi diri, semangat mempelajari pengetahuan baru"
+ },
+ "改善意識・学習姿勢": {
+  "en": "Improvement mindset and learning attitude",
+  "vi": "Ý thức cải tiến và thái độ học hỏi",
+  "id": "Kesadaran perbaikan dan sikap belajar"
+ },
+ "時間厳守・出勤態度": {
+  "en": "Punctuality and attendance",
+  "vi": "Đúng giờ và thái độ đi làm",
+  "id": "Ketepatan waktu dan sikap kehadiran"
+ },
+ "母豚の体況管理": {
+  "en": "Sow body condition management",
+  "vi": "Quản lý thể trạng lợn nái",
+  "id": "Manajemen kondisi tubuh induk babi"
+ },
+ "母豚の健康観察": {
+  "en": "Sow health observation",
+  "vi": "Quan sát sức khỏe lợn nái",
+  "id": "Pengamatan kesehatan induk babi"
+ },
+ "温度・湿度・換気・保温灯の調整": {
+  "en": "Adjusting temperature, humidity, ventilation, and heat lamps",
+  "vi": "Điều chỉnh nhiệt độ, độ ẩm, thông gió, đèn sưởi ấm",
+  "id": "Pengaturan suhu, kelembapan, ventilasi, lampu pemanas"
+ },
+ "温度・湿度・換気・飼養密度の調整": {
+  "en": "Adjusting temperature, humidity, ventilation, and stocking density",
+  "vi": "Điều chỉnh nhiệt độ, độ ẩm, thông gió, mật độ nuôi",
+  "id": "Pengaturan suhu, kelembapan, ventilasi, kepadatan kandang"
+ },
+ "環境管理": {
+  "en": "Environment management",
+  "vi": "Quản lý môi trường chuồng",
+  "id": "Manajemen lingkungan kandang"
+ },
+ "異常の早期発見と報告": {
+  "en": "Early detection and reporting of abnormalities",
+  "vi": "Phát hiện sớm và báo cáo bất thường",
+  "id": "Deteksi dini dan pelaporan kelainan"
+ },
+ "疾病・事故・死亡の早期察知と報連相": {
+  "en": "Early awareness of disease, accidents, and deaths; reporting, informing, consulting",
+  "vi": "Sớm nhận biết bệnh, tai nạn, chết; báo cáo - liên lạc - trao đổi",
+  "id": "Kesadaran dini terhadap penyakit, kecelakaan, kematian; lapor - informasikan - konsultasi"
+ },
+ "疾病・事故・発情戻りの早期察知と報連相": {
+  "en": "Early awareness of disease, accidents, and returns to heat; reporting, informing, consulting",
+  "vi": "Sớm nhận biết bệnh, tai nạn, động dục trở lại; báo cáo - liên lạc - trao đổi",
+  "id": "Kesadaran dini terhadap penyakit, kecelakaan, birahi kembali; lapor - informasikan - konsultasi"
+ },
+ "発情発見・種付けのタイミング": {
+  "en": "Heat detection and breeding timing",
+  "vi": "Phát hiện động dục và thời điểm phối giống",
+  "id": "Deteksi birahi dan waktu perkawinan"
+ },
+ "発情観察、人工授精・交配の的確さとタイミング": {
+  "en": "Heat observation; accuracy and timing of artificial insemination and mating",
+  "vi": "Quan sát động dục; độ chính xác và thời điểm thụ tinh nhân tạo, giao phối",
+  "id": "Pengamatan birahi; ketepatan dan waktu inseminasi buatan dan perkawinan"
+ },
+ "発育不良豚のケア": {
+  "en": "Care of poor-growing pigs",
+  "vi": "Chăm sóc lợn chậm lớn",
+  "id": "Perawatan babi yang pertumbuhannya buruk"
+ },
+ "移動時のストレス軽減、給餌・給水への誘導": {
+  "en": "Reducing stress during moves; guiding pigs to feed and water",
+  "vi": "Giảm căng thẳng khi di chuyển; hướng dẫn lợn đến chỗ cho ăn và nước uống",
+  "id": "Mengurangi stres saat pemindahan; mengarahkan babi ke pakan dan air minum"
+ },
+ "給水器の高さ・水量、脱水の防止": {
+  "en": "Drinker height and water flow; preventing dehydration",
+  "vi": "Chiều cao và lưu lượng nước của vòi uống; phòng tránh mất nước",
+  "id": "Ketinggian dan jumlah air tempat minum; pencegahan dehidrasi"
+ },
+ "給餌・給水管理": {
+  "en": "Feeding and water management",
+  "vi": "Quản lý cho ăn và nước uống",
+  "id": "Manajemen pemberian pakan dan air minum"
+ },
+ "肢蹄・乳房・外陰部の異常、跛行の確認": {
+  "en": "Checking for leg/foot, udder, and vulva abnormalities and lameness",
+  "vi": "Kiểm tra bất thường ở chân móng, bầu vú, âm hộ và đi khập khiễng",
+  "id": "Pemeriksaan kelainan kaki dan kuku, ambing, vulva, serta pincang"
+ },
+ "肥育舎": {
+  "en": "Finishing barn",
+  "vi": "Chuồng lợn thịt",
+  "id": "Kandang penggemukan"
+ },
+ "肥育舎業務": {
+  "en": "Finishing barn duties",
+  "vi": "Công việc chuồng lợn thịt",
+  "id": "Tugas kandang penggemukan"
+ },
+ "衛生管理・消毒": {
+  "en": "Hygiene management and disinfection",
+  "vi": "Quản lý vệ sinh và khử trùng",
+  "id": "Manajemen kebersihan dan disinfeksi"
+ },
+ "豚房清掃、オールイン・オールアウト、防疫意識": {
+  "en": "Pen cleaning, all-in/all-out, biosecurity awareness",
+  "vi": "Vệ sinh ô chuồng lợn, cùng vào - cùng ra (all-in all-out), ý thức phòng dịch",
+  "id": "Pembersihan petak kandang, all-in all-out (masuk-keluar serentak), kesadaran biosekuriti"
+ },
+ "豚房清掃、器具消毒、防疫意識": {
+  "en": "Pen cleaning, equipment disinfection, biosecurity awareness",
+  "vi": "Vệ sinh ô chuồng lợn, khử trùng dụng cụ, ý thức phòng dịch",
+  "id": "Pembersihan petak kandang, disinfeksi peralatan, kesadaran biosekuriti"
+ },
+ "離乳豚の導入・馴致": {
+  "en": "Weaner intake and acclimation",
+  "vi": "Tiếp nhận và làm quen lợn cai sữa",
+  "id": "Penerimaan dan adaptasi babi sapih"
+ },
+ "離乳食の切替、少量多回給与、食い込みの確認": {
+  "en": "Switching to weaner feed, small frequent feedings, checking feed intake",
+  "vi": "Chuyển đổi thức ăn sau cai sữa, cho ăn ít và nhiều lần, kiểm tra mức ăn vào",
+  "id": "Peralihan pakan setelah sapih, pemberian sedikit tapi sering, pengecekan nafsu makan"
+ },
+ "食欲・行動・乳房状態の確認、異常の有無": {
+  "en": "Checking appetite, behavior, and udder condition; any abnormalities",
+  "vi": "Kiểm tra ăn uống, hành vi, tình trạng bầu vú; có bất thường hay không",
+  "id": "Pemeriksaan nafsu makan, perilaku, kondisi ambing; ada tidaknya kelainan"
+ },
+ "飲水・給水設備の管理": {
+  "en": "Drinking water and water system management",
+  "vi": "Quản lý nước uống và thiết bị cấp nước",
+  "id": "Manajemen air minum dan peralatan penyediaan air"
+ },
+ "飲水管理": {
+  "en": "Drinking water management",
+  "vi": "Quản lý nước uống",
+  "id": "Manajemen air minum"
+ },
+ "飼料の種類・量の管理、給水器の点検": {
+  "en": "Managing feed type and amount, drinker checks",
+  "vi": "Quản lý loại và lượng thức ăn, kiểm tra vòi uống nước",
+  "id": "Pengelolaan jenis dan jumlah pakan, pemeriksaan tempat minum"
+ },
+ "飼料・給餌管理": {
+  "en": "Feed and feeding management",
+  "vi": "Quản lý thức ăn và cho ăn",
+  "id": "Manajemen pakan dan pemberian pakan"
+ },
+ "飼料切替の段取り、給餌器の調整、残飼・こぼれの管理": {
+  "en": "Planning feed changeovers, feeder adjustment, managing leftover and spilled feed",
+  "vi": "Sắp xếp chuyển đổi thức ăn, điều chỉnh máng ăn, quản lý thức ăn thừa và rơi vãi",
+  "id": "Persiapan peralihan pakan, penyesuaian tempat pakan, pengelolaan sisa pakan dan pakan tumpah"
+ }
+}

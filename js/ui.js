@@ -12,17 +12,22 @@ function buildCards(){
   }
   const secs=getSections(),items=getItems();
   let h='',ci=0; /* ci=カード通し番号（段階入場の遅延用。見出しは数えない） */
+  // 作業評価: 同じ睦沢44業務を収載する現場マニュアル（genba-manual）の該当ページへ深リンク
+  if(evalMode==='work'&&workSelId){
+    const w=workById(workSelId);
+    if(w&&w.gyomu)h+=`<a class="man-link" href="https://genba-manual.vercel.app/#g_${esc(w.gyomu)}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 5c-1.11-.35-2.33-.5-3.5-.5-1.95 0-4.05.4-5.5 1.5-1.45-1.1-3.55-1.5-5.5-1.5S2.45 4.9 1 6v14.65c0 .25.25.5.5.5.1 0 .15-.05.25-.05C3.1 20.45 5.05 20 6.5 20c1.95 0 4.05.4 5.5 1.5 1.35-.85 3.8-1.5 5.5-1.5 1.65 0 3.35.3 4.75 1.05.1.05.15.05.25.05.25 0 .5-.25.5-.5V6c-.6-.45-1.25-.75-2-1zm0 13.5c-1.1-.35-2.3-.5-3.5-.5-1.7 0-4.15.65-5.5 1.5V8c1.35-.85 3.8-1.5 5.5-1.5 1.2 0 2.4.15 3.5.5v11.5z"/></svg>${t('manualLink')}</a>`;
+  }
   secs.forEach((sec,si)=>{
     const secItems=items.filter(it=>it.secId===sec.id);
     if(!secItems.length)return;
-    h+=`<div class="stit">${esc(sec.name)}</div>`;
+    h+=`<div class="stit">${esc(l10n(sec.name))}</div>`;
     secItems.forEach((it,ii)=>{
       const cr=getCriteria(it);
       const badge=evalMode==='work'?(ii+1):(esc(sec.name.charAt(0))+'-'+(ii+1));
       h+=`<div class="cd ec" id="c-${it.id}" style="animation-delay:${Math.min(ci++,8)*0.03}s">
         <div class="en">${badge}</div>
-        <div class="enm">${esc(it.name)}</div>
-        ${it.desc?`<div class="ed">${esc(it.desc)}</div>`:''}
+        <div class="enm">${esc(l10n(it.name))}</div>
+        ${it.desc?`<div class="ed">${esc(l10n(it.desc))}</div>`:''}
         ${cr?`<button class="crit-tg" id="critb-${it.id}" onclick="toggleCrit('${it.id}')" aria-expanded="false" aria-controls="crit-${it.id}">▼ ${t('showCrit')}</button>
         <div class="crit" id="crit-${it.id}">
           <div class="crit-k"><b>${t('kantenLbl')}</b>${esc(cr.kanten)}</div>
@@ -69,9 +74,11 @@ function drawHist(){
     const a=avg(r.scores);
     // 平均バッジの色分けは採点の信号色と一致させる（3点台=黄。緑は4以上のみ）
     const ac=a==='-'?'':(+a>=4?' av4':(+a<2?' av1':(+a<3?' av2':' av3')));
-    return `<div class="hi" role="button" tabindex="0" onclick="showDet('${sanitizeId(r.id)}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();showDet('${sanitizeId(r.id)}')}"><div class="hii"><div class="hid">${esc(r.date)}　${t('evLbl')}: ${esc(r.evaluator)}</div><div class="hin">${esc(r.evaluatee)}${r.workName?`　<span class="hiw">${esc(r.workName)}</span>`:''}</div></div><div class="hia${ac}">${a}</div></div>`;
+    return `<div class="hi" role="button" tabindex="0" onclick="showDet('${sanitizeId(r.id)}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();showDet('${sanitizeId(r.id)}')}"><div class="hii"><div class="hid">${esc(r.date)}　${t('evLbl')}: ${esc(r.evaluator)}</div><div class="hin">${esc(r.evaluatee)}${r.workName?`　<span class="hiw">${esc(dispWorkName(r))}</span>`:''}</div></div><div class="hia${ac}">${a}</div></div>`;
   }).join('');
 }
+/* 履歴レコードの作業名を現在言語で（保存時のworkNameはja。作業が現存すれば訳語を引く） */
+function dispWorkName(r){const w=r.workId&&workById(r.workId);return w?loc(w,'name'):(r.workName||'')}
 /* 平均点。数値以外（文字列スコア等）が混ざると reduce が文字列連結になり toFixed で落ちるため型で弾く */
 function avg(sc){const v=Object.values(sc||{}).filter(x=>x!=null).map(Number).filter(x=>Number.isFinite(x));return v.length?(v.reduce((a,b)=>a+b,0)/v.length).toFixed(1):'-'}
 
@@ -83,12 +90,12 @@ function showDet(id){
   const r=getAll().find(e=>e.id===id);if(!r)return;
   const av=avg(r.scores);const items=itemsForRecord(r);
   let h=`<div class="mh"><h3 id="moTitle">${esc(r.evaluatee)} - ${esc(r.date)}</h3><button class="mx" onclick="closeMo()" aria-label="${t('btnClose')}">&times;</button></div>`;
-  h+=`<div style="font-size:.85rem;color:var(--sub);margin-bottom:12px">${r.workName?`${t('workNameCol')}: ${esc(r.workName)}　／　`:''}${t('evLbl')}: ${esc(r.evaluator)}　／　${t('avgLbl')}: ${av}</div>`;
+  h+=`<div style="font-size:.85rem;color:var(--sub);margin-bottom:12px">${r.workName?`${t('workNameCol')}: ${esc(dispWorkName(r))}　／　`:''}${t('evLbl')}: ${esc(r.evaluator)}　／　${t('avgLbl')}: ${av}</div>`;
   const cms=r.comments||{};
   items.forEach(it=>{
     /* スコアは取り込み時にnormRecで1〜5へ正規化済みだが、旧データ混在に備えて描画側でも数値化する */
     const n=Number(r.scores[it.id]),sc=Number.isInteger(n)&&n>=1&&n<=5?n:0,cm=cms[it.id];
-    h+=`<div class="di"><div class="dih"><span class="din">${esc(it.name)}</span>${sc?`<span class="dis sb${sc}">${sc}</span>`:''}</div>${cm?`<div class="dic">${esc(cm)}</div>`:''}</div>`;
+    h+=`<div class="di"><div class="dih"><span class="din">${esc(l10n(it.name))}</span>${sc?`<span class="dis sb${sc}">${sc}</span>`:''}</div>${cm?`<div class="dic">${esc(cm)}</div>`:''}</div>`;
   });
   if(r.overall)h+=`<div class="dov"><strong>${t('ovLbl')}:</strong><br>${esc(r.overall)}</div>`;
   /* 破壊的操作(削除)は面積・彩度を落として誤タップを防ぐ。主動線=閉じる */
@@ -153,7 +160,7 @@ function drawCharts(){
   const series=lat.workId?all.filter(e=>e.workId===lat.workId):all;
   const prev=series.length>1?series[series.length-2]:null;
   if(cR)cR.destroy();
-  cR=new Chart(document.getElementById('cvR'),{type:'radar',data:{labels:items.map(it=>{const n=it.name;return n.length>6?n.slice(0,6)+'…':n}),datasets:[
+  cR=new Chart(document.getElementById('cvR'),{type:'radar',data:{labels:items.map(it=>{const n=l10n(it.name),mx=lang==='ja'?6:14;return n.length>mx?n.slice(0,mx)+'…':n}),datasets:[
     {label:lat.date,data:items.map(it=>lat.scores[it.id]||0),borderColor:'#177863',backgroundColor:'rgba(23,120,99,.18)',pointBackgroundColor:'#177863'},
     ...(prev?[{label:prev.date+'（'+t('prevLbl')+'）',data:items.map(it=>prev.scores[it.id]||0),borderColor:'#9e9e9e',backgroundColor:'rgba(158,158,158,.08)',pointBackgroundColor:'#9e9e9e',borderDash:[5,4],borderWidth:1.5}]:[])
   ]},options:{responsive:true,maintainAspectRatio:false,scales:{r:{min:0,max:5,ticks:{stepSize:1,font:{size:10},color:'#54635d',backdropColor:'rgba(255,255,255,.75)'},grid:{color:'#e3eae7'},angleLines:{color:'#e3eae7'},pointLabels:{font:{size:11},color:'#14211c'}}},plugins:{legend:{display:true,position:'bottom'}}}});

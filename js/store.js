@@ -35,7 +35,7 @@ function getSections(){
 function getCriteria(it){
   if(evalMode==='work')return it.levels?{kanten:it.kanten,levels:it.levels}:null;
   const cr=criteriaFor(it.id);
-  return cr?{kanten:cr.kanten,levels:[cr.level1,cr.level2,cr.level3,cr.level4,cr.level5]}:null;
+  return cr?{kanten:loc(cr,'kanten'),levels:[1,2,3,4,5].map(n=>loc(cr,'level'+n))}:null;
 }
 /* 現在モードの評価データ保存キー */
 function curDataKey(){return evalMode==='work'?WORK_SKEY:SKEY}

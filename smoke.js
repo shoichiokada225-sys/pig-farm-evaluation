@@ -392,6 +392,62 @@ function ok(name, cond) {
     return !!d && JSON.parse(d).overall === '編集した所感';
   }));
 
+  console.log('[22] 多言語：評価項目データのen/vi/id（キー欠落ゼロ・切替表示・{work}保持）');
+  await page.reload();
+  await page.waitForTimeout(300);
+  // 埋め込みデータの言語キー欠落を機械検証
+  const i18nGap = await page.evaluate(() => {
+    const langs = ['en', 'vi', 'id'], gaps = [];
+    const need = (o, f, at) => langs.forEach(lg => { if (o[f + '_' + lg] == null || o[f + '_' + lg] === '') gaps.push(at + '/' + f + '_' + lg); });
+    CRITERIA.forEach(b => b.items.forEach((it, i) => {
+      need(it, 'name', b.key + i); need(it, 'kanten', b.key + i);
+      for (let n = 1; n <= 5; n++) need(it, 'level' + n, b.key + i);
+    }));
+    WORKDATA.works.forEach(w => {
+      need(w, 'name', w.id); if (!w.gyomu) gaps.push(w.id + '/gyomu');
+      w.aspects.forEach(a => { need(a, 'name', w.id + a.id); need(a, 'kanten', w.id + a.id);
+        langs.forEach(lg => { const lv = a['levels_' + lg]; if (!Array.isArray(lv) || lv.length !== a.levels.length) gaps.push(w.id + a.id + '/levels_' + lg); }); });
+    });
+    WORKDATA.commonAspects.forEach(a => { need(a, 'name', a.id); need(a, 'kanten', a.id);
+      langs.forEach(lg => { const lv = a['levels_' + lg]; if (!Array.isArray(lv) || lv.length !== a.levels.length) gaps.push(a.id + '/levels_' + lg); }); });
+    return gaps;
+  });
+  ok('言語キー欠落ゼロ', i18nGap.length === 0);
+  if (i18nGap.length) console.log('   gaps:', i18nGap.slice(0, 8).join(', '));
+  // vi切替→基準文がベトナム語（ダイアクリティカル付き）になる
+  const kantenJa = await page.evaluate(() => criteriaFor('item1').kanten);
+  await page.click('.lsw button:has-text("VI")');
+  await page.waitForTimeout(200);
+  await page.click('#critb-item1');
+  const kantenVi = await page.locator('#crit-item1 .crit-k').textContent();
+  ok('vi基準文がjaと異なる', !kantenVi.includes(kantenJa));
+  ok('viダイアクリティカルあり', /[ăâêôơưđạảấầẩẫậắằẳẵặẹẻẽếềểễệịỉĩọỏốồổỗộớờởỡợụủứừửữựỳỵỷỹ]/i.test(kantenVi));
+  ok('vi豚舎名', !(await page.locator('#barnSel option').first().textContent()).includes('分娩舎'));
+  // 作業評価: vi観点名＋{work}が訳文中でも置換される＋マニュアル深リンク
+  await page.click('#modeWork');
+  await page.waitForTimeout(200);
+  await page.selectOption('#workCatSel', 'feeding');
+  await page.waitForTimeout(150);
+  await page.selectOption('#workSel', 'feeding-daily');
+  await page.waitForTimeout(300);
+  const manHref = await page.locator('.man-link').getAttribute('href');
+  ok('マニュアル深リンク g_11', manHref === 'https://genba-manual.vercel.app/#g_11');
+  const cardsTxt = await page.locator('#cards').textContent();
+  ok('{work}が残っていない', !cardsTxt.includes('{work}'));
+  ok('共通観点の{work}にvi作業名が入る', await page.evaluate(() => {
+    const wn = workById('feeding-daily').name_vi;
+    return !!wn && workItems('feeding-daily').some(it => it.secId === 'common' && it.kanten.includes(wn));
+  }));
+  // en切替→基準levels が英語
+  await page.click('.lsw button:has-text("EN")');
+  await page.waitForTimeout(200);
+  const lvEn = await page.evaluate(() => getCriteria(workItems('feeding-daily')[0]).levels[0]);
+  ok('en基準文', /[a-zA-Z]/.test(lvEn) && !/[ぁ-んァ-ヶ一-龠]/.test(lvEn));
+  // ja へ戻す（後続・再実行の安定のため）
+  await page.click('.lsw button:has-text("JP")');
+  await page.click('#modeBarn');
+  await page.waitForTimeout(200);
+
   ok('ページエラーなし', errors.length === 0);
   if (errors.length) console.log(errors.join('\n'));
 

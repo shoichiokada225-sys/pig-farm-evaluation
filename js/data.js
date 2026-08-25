@@ -42,6 +42,19 @@ const COMMON_B=[
  ['item10','改善意識・学習姿勢','提案、振り返り、新しい知識の習得意欲']
 ];
 function barnDef(key){return BARNS.find(b=>b.key===key)||BARNS[0]}
+
+/* ==============================================================
+   多言語アクセサ（評価項目データの en/vi/id）
+   - loc(o,f): o[f+'_'+lang] があればそれを、無ければ o[f]（ja原文）
+   - locLevels(o): levels_en 等の配列版
+   - l10n(s): 表示文字列辞書（barns-l10n.json埋め込み）による ja原文→訳語。
+     利用者が項目名をカスタムした場合は辞書に無いため原文のまま表示される
+   ============================================================== */
+let L10N={};
+try{L10N=JSON.parse(document.getElementById('l10nData').textContent)||{}}catch{L10N={}}
+function loc(o,f){if(lang!=='ja'&&o){const v=o[f+'_'+lang];if(v!=null)return v}return o?o[f]:''}
+function locLevels(o){if(lang!=='ja'&&o){const v=o['levels_'+lang];if(Array.isArray(v)&&v.length)return v}return o&&o.levels||[]}
+function l10n(s){if(lang==='ja'||s==null)return s;const e=L10N[s];return e&&e[lang]||s}
 function defaultCfg(){
   const b=barnDef(activeBarn);
   return{sections:[{id:'A',name:b.secA},{id:'B',name:'仕事への姿勢'}],
@@ -86,8 +99,9 @@ function catLabel(catId){
 /* 選択作業の採点対象観点リスト（固有観点＋共通観点）。共通観点は{work}を作業名へ置換 */
 function workItems(workId){
   const w=workById(workId);if(!w)return[];
-  const spec=w.aspects.map(a=>({id:a.id,secId:'specific',name:a.name,desc:'',kanten:a.kanten,levels:a.levels}));
-  const comm=WORKDATA.commonAspects.map(a=>({id:a.id,secId:'common',name:a.name,desc:'',
-    kanten:fillWork(a.kanten,w.name),levels:a.levels.map(l=>fillWork(l,w.name))}));
+  const wname=loc(w,'name');
+  const spec=w.aspects.map(a=>({id:a.id,secId:'specific',name:loc(a,'name'),desc:'',kanten:loc(a,'kanten'),levels:locLevels(a)}));
+  const comm=WORKDATA.commonAspects.map(a=>({id:a.id,secId:'common',name:loc(a,'name'),desc:'',
+    kanten:fillWork(loc(a,'kanten'),wname),levels:locLevels(a).map(l=>fillWork(l,wname))}));
   return spec.concat(comm);
 }

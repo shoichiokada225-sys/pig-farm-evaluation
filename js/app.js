@@ -5,7 +5,7 @@
 function setLang(l){
   lang=l;localStorage.setItem(LKEY,l);document.documentElement.lang=l;
   document.querySelectorAll('.lsw button').forEach(b=>{const on=b.textContent.trim()==={ja:'JP',en:'EN',vi:'VI',id:'ID'}[l];b.classList.toggle('on',on);b.setAttribute('aria-pressed',on)});
-  applyT();buildCards();restoreSt();buildCfgUI();
+  applyT();populateBarnSel();buildCards();restoreSt();buildCfgUI();
   if(evalMode==='work'){populateWorkCat();populateWorkSel();}
 }
 function applyT(){
@@ -203,7 +203,7 @@ function refreshSel(){
    ============================================================== */
 function populateBarnSel(){
   const sel=document.getElementById('barnSel');if(!sel)return;
-  sel.innerHTML=BARNS.map(b=>`<option value="${b.key}">${esc(b.name)}</option>`).join('');
+  sel.innerHTML=BARNS.map(b=>`<option value="${b.key}">${esc(l10n(b.name))}</option>`).join('');
   sel.value=activeBarn;
 }
 function setBarn(key){
@@ -220,7 +220,7 @@ function setBarn(key){
   if(cur&&cur.dataset.pg==='pgCfg')buildCfgUI();
   if(cur&&cur.dataset.pg==='pgHi')drawHist();
   if(cur&&cur.dataset.pg==='pgCh')drawCharts();
-  toast(barnDef(key).name);
+  toast(l10n(barnDef(key).name));
 }
 
 /* ==============================================================
@@ -263,7 +263,7 @@ function populateWorkSel(){
   const sel=document.getElementById('workSel');if(!sel)return;
   const ws=workCatId?worksInCat(workCatId):[];
   sel.innerHTML=`<option value="">${t('selWork')}</option>`+
-    ws.map(w=>`<option value="${esc(w.id)}">${esc(w.name)}</option>`).join('');
+    ws.map(w=>`<option value="${esc(w.id)}">${esc(loc(w,'name'))}</option>`).join('');
   sel.value=workSelId;
 }
 function setWork(workId){

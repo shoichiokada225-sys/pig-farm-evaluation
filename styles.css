@@ -228,6 +228,17 @@ button{touch-action:manipulation}
 @keyframes shine{to{transform:translateX(100%)}}
 .prog-t{font-size:.8rem;font-weight:700;color:var(--pri-d);white-space:nowrap;font-variant-numeric:tabular-nums}
 
+/* ---------- 7.5 マニュアル深リンク（作業評価 → genba-manual該当ページ） ---------- */
+.man-link{
+  display:flex;align-items:center;gap:10px;
+  min-height:var(--tap);padding:10px 16px;margin:2px 0 4px;
+  background:var(--card);border:1px solid var(--pri);border-radius:var(--r);
+  color:var(--pri-d);font-weight:700;font-size:.92rem;text-decoration:none;
+  box-shadow:var(--sh);
+}
+.man-link:hover{background:var(--pri-ll)}
+.man-link svg{width:20px;height:20px;fill:var(--pri);flex:none}
+
 /* ---------- 8. 評価基準（レベル1〜5） ---------- */
 .crit-tg{
   width:100%;min-height:44px;margin:2px 0 10px;

@@ -43,11 +43,16 @@ with open(os.path.join(BASE, "works-data.json"), encoding="utf-8") as f:
     works = json.load(f)
 work["works"] = works
 
+# --- 表示文字列のL10N辞書（豚舎名・デフォルト項目名など ja原文→{en,vi,id}） ---
+with open(os.path.join(BASE, "barns-l10n.json"), encoding="utf-8") as f:
+    l10n = json.load(f)
+
 with open(DST, encoding="utf-8") as f:
     html = f.read()
 
 html = embed(html, "criteriaData", dumps(criteria))
 html = embed(html, "workCriteriaData", dumps(work))
+html = embed(html, "l10nData", dumps(l10n))
 
 with open(DST, "w", encoding="utf-8", newline="\n") as f:
     f.write(html)

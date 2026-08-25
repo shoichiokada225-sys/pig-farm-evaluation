@@ -1,75 +1,279 @@
 {
-  "levelLabels": ["要指導", "要改善", "標準", "上回る", "模範的"],
-  "commonAspects": [
-    {
-      "id": "care",
-      "name": "丁寧さ・確実さ",
-      "kanten": "{work}を手順どおり丁寧に、やり残しや不備なく確実に行えるか。仕上がりを自分で確かめられるか。",
-      "levels": [
-        "{work}を雑に済ませ、やり残しや不備があっても気づかず放置する。指示されなければ正しく行えない。",
-        "指示があれば{work}をひと通り行えるが、手順の抜けや仕上がりのムラが多く、確実にできたかの確認は他者まかせ。",
-        "指示があれば{work}を手順どおり丁寧に行い、やり残しや不備に自分で気づける。",
-        "指示がなくても{work}を確実に行い、仕上がりを自分で確かめて、不備があればその場で直す。",
-        "{work}の要点とミスの起きやすい箇所を理解し、常に安定した品質で行い、丁寧で確実なやり方を新人に指導できる。"
-      ]
-    },
-    {
-      "id": "time",
-      "name": "時間内の遂行",
-      "kanten": "{work}を決められた時間の目安内に、段取りよく終えられるか。",
-      "levels": [
-        "{work}に時間がかかりすぎ、時間内に終わらない。段取りを考えず、遅れても気にしない。",
-        "指示があれば取りかかるが、段取りが悪く時間内に終わらないことが多い。",
-        "指示された時間の目安を守って{work}を進められる。",
-        "指示がなくても優先順位と段取りを考え、{work}を余裕をもって時間内に終える。",
-        "{work}全体の段取りを組んで無駄を省き、時間内に終える工夫を新人に教えられる。"
-      ]
-    },
-    {
-      "id": "tools",
-      "name": "器具・設備の扱い",
-      "kanten": "{work}で使う器具・設備を正しく清潔に扱い、使用後の洗浄・消毒・点検・片づけができるか。",
-      "levels": [
-        "{work}で使う器具・設備を乱暴に扱い、汚れや破損・消毒忘れがあっても気にしない。",
-        "指示があれば器具を使えるが、消毒や後片づけ・点検に抜けが多い。",
-        "指示があれば器具・設備を正しく使い、使用後の洗浄・消毒・片づけができる。",
-        "指示がなくても器具を清潔・適切に扱い、不具合や消耗に気づけば手入れ・報告する。",
-        "器具・設備の扱いと管理の要点を理解し、正しい扱い方を新人に指導できる。"
-      ]
-    },
-    {
-      "id": "report",
-      "name": "報告・記録",
-      "kanten": "{work}の結果・数値・気づいた異常を、上長へ報告し、記録に残せるか。",
-      "levels": [
-        "{work}の結果や気づいた異常を報告せず、記録も残さない。",
-        "指示されれば報告・記録するが、内容が不十分で抜け漏れが多い。",
-        "指示された事項について{work}の結果・数値・異常を報告し、記録に残せる。",
-        "指示がなくても{work}で気づいた異常や引き継ぎ事項を、相手に伝わる形で報告・記録する。",
-        "報告・記録の要点や優先順位を判断し、伝えるべき異常の見分け方と記録の書き方を新人に指導できる。"
-      ]
-    },
-    {
-      "id": "observe",
-      "name": "作業外の観察（豚の異常察知）",
-      "kanten": "{work}をしながらも豚全体へ目を配り、発熱・食欲・行動の変化などの異常を早期に察知できるか。",
-      "levels": [
-        "{work}に気を取られ、豚の様子や周囲の異常に気づかない。",
-        "指示されれば豚を見るが、{work}中の異常（発熱・食欲・行動の変化など）を見落としがち。",
-        "{work}をしながら豚の目に見える異常に気づき、確かめられる。",
-        "{work}中も自然に豚全体へ目を配り、異常の兆候を早期に察知して初期対応・報告できる。",
-        "{work}と並行した観察の着眼点を理解し、異常の早期発見のコツを新人に指導できる。"
-      ]
-    }
-  ],
-  "categories": [
-    { "id": "feeding", "name": "飼養管理" },
-    { "id": "hygiene", "name": "衛生管理" },
-    { "id": "breeding", "name": "繁殖管理" },
-    { "id": "farrowing", "name": "分娩管理" },
-    { "id": "facility", "name": "施設管理" },
-    { "id": "record", "name": "記録管理" },
-    { "id": "shipping", "name": "出荷管理" }
-  ],
-  "works": []
+ "levelLabels": [
+  "要指導",
+  "要改善",
+  "標準",
+  "上回る",
+  "模範的"
+ ],
+ "commonAspects": [
+  {
+   "id": "care",
+   "name": "丁寧さ・確実さ",
+   "kanten": "{work}を手順どおり丁寧に、やり残しや不備なく確実に行えるか。仕上がりを自分で確かめられるか。",
+   "levels": [
+    "{work}を雑に済ませ、やり残しや不備があっても気づかず放置する。指示されなければ正しく行えない。",
+    "指示があれば{work}をひと通り行えるが、手順の抜けや仕上がりのムラが多く、確実にできたかの確認は他者まかせ。",
+    "指示があれば{work}を手順どおり丁寧に行い、やり残しや不備に自分で気づける。",
+    "指示がなくても{work}を確実に行い、仕上がりを自分で確かめて、不備があればその場で直す。",
+    "{work}の要点とミスの起きやすい箇所を理解し、常に安定した品質で行い、丁寧で確実なやり方を新人に指導できる。"
+   ],
+   "name_en": "Care and Reliability",
+   "kanten_en": "Can they perform {work} carefully by the procedure, completely and without defects, and check the finished result themselves?",
+   "levels_en": [
+    "Does {work} sloppily and leaves omissions and defects unnoticed. Cannot do it correctly unless instructed.",
+    "With guidance can get through {work}, but with many procedural gaps and uneven results, leaving the quality check to others.",
+    "With guidance can perform {work} carefully by the procedure and notice omissions and defects on their own.",
+    "Independently performs {work} reliably, checks the result themselves, and fixes any defect on the spot.",
+    "Understands the key points of {work} and where mistakes tend to occur, performs it at consistently stable quality, and can teach new staff careful and reliable methods."
+   ],
+   "name_vi": "Cẩn thận, chắc chắn",
+   "kanten_vi": "Có làm {work} đúng trình tự, cẩn thận, chắc chắn không bỏ sót, không sai sót không. Có tự kiểm tra kết quả hoàn thành không.",
+   "levels_vi": [
+    "Làm {work} cẩu thả, có chỗ bỏ sót, sai sót cũng không nhận ra mà bỏ mặc. Không được chỉ thị thì không làm đúng được.",
+    "Nếu được chỉ thị thì làm được {work} một cách cơ bản, nhưng hay bỏ sót bước, chất lượng không đều, việc kiểm tra đã làm chắc chưa thì phó mặc người khác.",
+    "Nếu được chỉ thị thì làm {work} đúng trình tự, cẩn thận, tự nhận ra được chỗ bỏ sót, sai sót.",
+    "Dù không có chỉ thị vẫn làm {work} chắc chắn, tự kiểm tra kết quả, có sai sót thì sửa ngay tại chỗ.",
+    "Hiểu các điểm chính của {work} và chỗ dễ xảy ra lỗi, luôn làm với chất lượng ổn định, và có thể hướng dẫn người mới cách làm cẩn thận, chắc chắn."
+   ],
+   "name_id": "Ketelitian dan kepastian",
+   "kanten_id": "Apakah dapat melakukan {work} sesuai urutan dengan teliti dan pasti, tanpa yang terlewat atau cacat? Apakah dapat memeriksa sendiri hasil kerjanya?",
+   "levels_id": [
+    "Melakukan {work} asal-asalan, dan tidak sadar serta membiarkan walaupun ada yang terlewat atau cacat. Tidak bisa melakukan dengan benar jika tidak diperintah.",
+    "Jika diperintah dapat melakukan {work} secara garis besar, tetapi banyak urutan yang terlewat dan hasilnya tidak rata, dan pemeriksaan hasil diserahkan ke orang lain.",
+    "Jika diperintah, dapat melakukan {work} sesuai urutan dengan teliti, dan menyadari sendiri yang terlewat atau cacat.",
+    "Tanpa diperintah pun, melakukan {work} dengan pasti, memeriksa sendiri hasilnya, dan langsung memperbaiki jika ada cacat.",
+    "Memahami pokok {work} dan titik yang mudah salah, selalu bekerja dengan mutu stabil, dan dapat mengajarkan cara kerja yang teliti dan pasti kepada karyawan baru."
+   ]
+  },
+  {
+   "id": "time",
+   "name": "時間内の遂行",
+   "kanten": "{work}を決められた時間の目安内に、段取りよく終えられるか。",
+   "levels": [
+    "{work}に時間がかかりすぎ、時間内に終わらない。段取りを考えず、遅れても気にしない。",
+    "指示があれば取りかかるが、段取りが悪く時間内に終わらないことが多い。",
+    "指示された時間の目安を守って{work}を進められる。",
+    "指示がなくても優先順位と段取りを考え、{work}を余裕をもって時間内に終える。",
+    "{work}全体の段取りを組んで無駄を省き、時間内に終える工夫を新人に教えられる。"
+   ],
+   "name_en": "Completion Within Time",
+   "kanten_en": "Can they finish {work} within the expected time frame with good planning?",
+   "levels_en": [
+    "Takes too long on {work} and cannot finish in time. Does not plan the sequence and does not mind being late.",
+    "With guidance can get started, but plans poorly and often fails to finish in time.",
+    "Can proceed with {work} within the instructed time frame.",
+    "Independently sets priorities and sequencing and finishes {work} within time with margin to spare.",
+    "Plans the whole flow of {work} to eliminate waste, and can teach new staff how to finish within time."
+   ],
+   "name_vi": "Hoàn thành trong thời gian",
+   "kanten_vi": "Có hoàn thành {work} trong thời gian định mức, với trình tự công việc hợp lý không.",
+   "levels_vi": [
+    "Làm {work} mất quá nhiều thời gian, không xong trong thời gian. Không nghĩ đến trình tự, chậm cũng không quan tâm.",
+    "Nếu được chỉ thị thì bắt tay vào làm, nhưng sắp xếp kém, thường không xong trong thời gian.",
+    "Giữ được thời gian định mức được chỉ thị và tiến hành {work}.",
+    "Dù không có chỉ thị vẫn cân nhắc thứ tự ưu tiên và trình tự, hoàn thành {work} trong thời gian một cách dư dả.",
+    "Sắp xếp được trình tự của toàn bộ {work}, loại bỏ lãng phí, và có thể dạy người mới cách hoàn thành trong thời gian."
+   ],
+   "name_id": "Menyelesaikan dalam waktu",
+   "kanten_id": "Apakah dapat menyelesaikan {work} dalam patokan waktu yang ditentukan dengan urutan kerja yang baik?",
+   "levels_id": [
+    "{work} memakan waktu terlalu lama dan tidak selesai dalam waktu. Tidak memikirkan urutan kerja, dan tidak peduli walaupun terlambat.",
+    "Mulai bekerja jika diperintah, tetapi urutan kerjanya buruk sehingga sering tidak selesai dalam waktu.",
+    "Dapat mengerjakan {work} dengan menepati patokan waktu yang diperintahkan.",
+    "Tanpa diperintah pun, memikirkan prioritas dan urutan kerja, dan menyelesaikan {work} dalam waktu dengan longgar.",
+    "Dapat menyusun urutan seluruh {work}, membuang yang sia-sia, dan mengajarkan cara menyelesaikan dalam waktu kepada karyawan baru."
+   ]
+  },
+  {
+   "id": "tools",
+   "name": "器具・設備の扱い",
+   "kanten": "{work}で使う器具・設備を正しく清潔に扱い、使用後の洗浄・消毒・点検・片づけができるか。",
+   "levels": [
+    "{work}で使う器具・設備を乱暴に扱い、汚れや破損・消毒忘れがあっても気にしない。",
+    "指示があれば器具を使えるが、消毒や後片づけ・点検に抜けが多い。",
+    "指示があれば器具・設備を正しく使い、使用後の洗浄・消毒・片づけができる。",
+    "指示がなくても器具を清潔・適切に扱い、不具合や消耗に気づけば手入れ・報告する。",
+    "器具・設備の扱いと管理の要点を理解し、正しい扱い方を新人に指導できる。"
+   ],
+   "name_en": "Handling Equipment and Facilities",
+   "kanten_en": "Can they handle the equipment and facilities used in {work} correctly and hygienically, and wash, disinfect, inspect, and put them away after use?",
+   "levels_en": [
+    "Handles the equipment and facilities used in {work} roughly, and does not care about dirt, damage, or missed disinfection.",
+    "With guidance can use the equipment, but often misses disinfection, cleanup, or inspection.",
+    "With guidance can use equipment and facilities correctly and wash, disinfect, and put them away after use.",
+    "Independently handles equipment hygienically and properly, and maintains or reports any defect or wear they notice.",
+    "Understands the key points of equipment handling and care, and can teach new staff the correct handling."
+   ],
+   "name_vi": "Sử dụng dụng cụ, thiết bị",
+   "kanten_vi": "Có sử dụng đúng và sạch sẽ dụng cụ, thiết bị dùng trong {work}, sau khi dùng có rửa, khử trùng, kiểm tra, cất dọn không.",
+   "levels_vi": [
+    "Sử dụng thô bạo dụng cụ, thiết bị dùng trong {work}, bẩn, hỏng hay quên khử trùng cũng không quan tâm.",
+    "Nếu được chỉ thị thì dùng được dụng cụ, nhưng hay bỏ sót khử trùng, dọn dẹp, kiểm tra.",
+    "Nếu được chỉ thị thì dùng đúng dụng cụ, thiết bị, sau khi dùng rửa, khử trùng, cất dọn được.",
+    "Dù không có chỉ thị vẫn dùng dụng cụ sạch sẽ, phù hợp, nhận ra hỏng hóc, hao mòn thì bảo dưỡng, báo cáo.",
+    "Hiểu các điểm chính về sử dụng và quản lý dụng cụ, thiết bị, và có thể hướng dẫn người mới cách dùng đúng."
+   ],
+   "name_id": "Penanganan alat dan peralatan",
+   "kanten_id": "Apakah dapat memakai alat dan peralatan untuk {work} dengan benar dan bersih, serta mencuci, mendisinfeksi, memeriksa, dan merapikannya setelah dipakai?",
+   "levels_id": [
+    "Memperlakukan alat dan peralatan untuk {work} dengan kasar, dan tidak peduli walaupun ada kotoran, kerusakan, atau lupa disinfeksi.",
+    "Dapat memakai alat jika diperintah, tetapi banyak yang terlewat dalam disinfeksi, merapikan, dan pemeriksaan.",
+    "Jika diperintah, dapat memakai alat dan peralatan dengan benar, serta mencuci, mendisinfeksi, dan merapikannya setelah dipakai.",
+    "Tanpa diperintah pun, memperlakukan alat dengan bersih dan tepat, dan jika menyadari kerusakan atau keausan segera merawat atau melapor.",
+    "Memahami pokok penanganan dan pengelolaan alat dan peralatan, dan dapat mengajarkan cara penanganan yang benar kepada karyawan baru."
+   ]
+  },
+  {
+   "id": "report",
+   "name": "報告・記録",
+   "kanten": "{work}の結果・数値・気づいた異常を、上長へ報告し、記録に残せるか。",
+   "levels": [
+    "{work}の結果や気づいた異常を報告せず、記録も残さない。",
+    "指示されれば報告・記録するが、内容が不十分で抜け漏れが多い。",
+    "指示された事項について{work}の結果・数値・異常を報告し、記録に残せる。",
+    "指示がなくても{work}で気づいた異常や引き継ぎ事項を、相手に伝わる形で報告・記録する。",
+    "報告・記録の要点や優先順位を判断し、伝えるべき異常の見分け方と記録の書き方を新人に指導できる。"
+   ],
+   "name_en": "Reporting and Recording",
+   "kanten_en": "Can they report the results, figures, and any abnormalities noticed in {work} to supervisors and keep records?",
+   "levels_en": [
+    "Does not report results or abnormalities noticed in {work} and keeps no records.",
+    "With guidance can report and record, but the content is insufficient with many omissions.",
+    "Can report and record the results, figures, and abnormalities of {work} for the instructed items.",
+    "Independently reports and records abnormalities and handover items noticed in {work} in a form that gets through to the recipient.",
+    "Judges the key points and priorities of reporting and recording, and can teach new staff how to spot reportable abnormalities and write records."
+   ],
+   "name_vi": "Báo cáo, ghi chép",
+   "kanten_vi": "Có báo cáo cho cấp trên và ghi lại kết quả, số liệu, bất thường nhận thấy trong {work} không.",
+   "levels_vi": [
+    "Không báo cáo kết quả hay bất thường nhận thấy trong {work}, cũng không ghi chép lại.",
+    "Nếu được chỉ thị thì báo cáo, ghi chép, nhưng nội dung chưa đủ, hay thiếu sót.",
+    "Báo cáo và ghi lại được kết quả, số liệu, bất thường của {work} theo các mục được chỉ thị.",
+    "Dù không có chỉ thị vẫn báo cáo, ghi chép bất thường và việc cần bàn giao nhận thấy trong {work} theo cách người khác hiểu được.",
+    "Phán đoán được điểm chính và thứ tự ưu tiên của báo cáo, ghi chép, và có thể hướng dẫn người mới cách nhận biết bất thường cần truyền đạt và cách viết ghi chép."
+   ],
+   "name_id": "Laporan dan pencatatan",
+   "kanten_id": "Apakah dapat melaporkan hasil, angka, dan kelainan yang disadari dari {work} kepada atasan, dan menyimpannya dalam catatan?",
+   "levels_id": [
+    "Tidak melaporkan hasil {work} dan kelainan yang disadari, dan tidak menyimpan catatan.",
+    "Melaporkan dan mencatat jika diperintah, tetapi isinya kurang dan banyak yang terlewat.",
+    "Dapat melaporkan hasil, angka, dan kelainan {work} sesuai hal yang diperintahkan, dan menyimpannya dalam catatan.",
+    "Tanpa diperintah pun, melaporkan dan mencatat kelainan serta hal serah terima yang disadari dari {work} dalam bentuk yang dimengerti penerimanya.",
+    "Dapat menilai pokok dan prioritas laporan dan catatan, dan mengajarkan cara membedakan kelainan yang harus disampaikan dan cara menulis catatan kepada karyawan baru."
+   ]
+  },
+  {
+   "id": "observe",
+   "name": "作業外の観察（豚の異常察知）",
+   "kanten": "{work}をしながらも豚全体へ目を配り、発熱・食欲・行動の変化などの異常を早期に察知できるか。",
+   "levels": [
+    "{work}に気を取られ、豚の様子や周囲の異常に気づかない。",
+    "指示されれば豚を見るが、{work}中の異常（発熱・食欲・行動の変化など）を見落としがち。",
+    "{work}をしながら豚の目に見える異常に気づき、確かめられる。",
+    "{work}中も自然に豚全体へ目を配り、異常の兆候を早期に察知して初期対応・報告できる。",
+    "{work}と並行した観察の着眼点を理解し、異常の早期発見のコツを新人に指導できる。"
+   ],
+   "name_en": "Observation Beyond the Task (Spotting Pig Abnormalities)",
+   "kanten_en": "Can they keep an eye on all the pigs while doing {work} and detect abnormalities such as fever and changes in appetite or behavior early?",
+   "levels_en": [
+    "Absorbed in {work}, fails to notice the pigs' condition or abnormalities around them.",
+    "With guidance watches the pigs, but tends to miss abnormalities during {work} (fever, changes in appetite or behavior, etc.).",
+    "Notices visible pig abnormalities while doing {work} and can verify them.",
+    "Naturally keeps an eye on all the pigs during {work}, detects early signs of abnormality, and takes initial action and reports.",
+    "Understands the observation points to combine with {work}, and can teach new staff the knack of early abnormality detection."
+   ],
+   "name_vi": "Quan sát ngoài công việc (nhận biết bất thường của lợn)",
+   "kanten_vi": "Vừa làm {work} vừa để mắt đến toàn bộ đàn lợn, có phát hiện sớm bất thường như sốt, thay đổi ăn uống, hành vi không.",
+   "levels_vi": [
+    "Mải làm {work}, không nhận ra tình trạng lợn hay bất thường xung quanh.",
+    "Nếu được chỉ thị thì nhìn lợn, nhưng hay bỏ sót bất thường trong lúc làm {work} (sốt, thay đổi ăn uống, hành vi v.v.).",
+    "Vừa làm {work} vừa nhận ra và kiểm tra được bất thường nhìn thấy của lợn.",
+    "Trong lúc làm {work} vẫn tự nhiên để mắt đến toàn đàn, phát hiện sớm dấu hiệu bất thường, xử lý ban đầu và báo cáo được.",
+    "Hiểu các điểm cần nhìn khi quan sát song song với {work}, và có thể hướng dẫn người mới mẹo phát hiện sớm bất thường."
+   ],
+   "name_id": "Pengamatan di luar pekerjaan (menyadari kelainan babi)",
+   "kanten_id": "Apakah sambil melakukan {work} tetap memperhatikan seluruh babi, dan dapat menyadari sejak dini kelainan seperti demam, nafsu makan, dan perubahan tingkah laku?",
+   "levels_id": [
+    "Terlalu sibuk dengan {work}, dan tidak menyadari keadaan babi dan kelainan di sekitarnya.",
+    "Melihat babi jika diperintah, tetapi cenderung melewatkan kelainan saat {work} (demam, nafsu makan, perubahan tingkah laku, dan lainnya).",
+    "Sambil melakukan {work}, dapat menyadari dan memastikan kelainan babi yang terlihat mata.",
+    "Selama {work} pun secara alami memperhatikan seluruh babi, menyadari tanda kelainan sejak dini, dan dapat menangani awal serta melapor.",
+    "Memahami titik pengamatan yang dilakukan bersamaan dengan {work}, dan dapat mengajarkan cara menemukan kelainan sejak dini kepada karyawan baru."
+   ]
+  }
+ ],
+ "categories": [
+  {
+   "id": "feeding",
+   "name": "飼養管理",
+   "name_en": "Feeding Management",
+   "name_vi": "Quản lý chăn nuôi",
+   "name_id": "Manajemen pemeliharaan"
+  },
+  {
+   "id": "hygiene",
+   "name": "衛生管理",
+   "name_en": "Hygiene Management",
+   "name_vi": "Quản lý vệ sinh",
+   "name_id": "Manajemen kebersihan"
+  },
+  {
+   "id": "breeding",
+   "name": "繁殖管理",
+   "name_en": "Breeding Management",
+   "name_vi": "Quản lý sinh sản",
+   "name_id": "Manajemen reproduksi"
+  },
+  {
+   "id": "farrowing",
+   "name": "分娩管理",
+   "name_en": "Farrowing Management",
+   "name_vi": "Quản lý sinh đẻ",
+   "name_id": "Manajemen kelahiran"
+  },
+  {
+   "id": "facility",
+   "name": "施設管理",
+   "name_en": "Facility Management",
+   "name_vi": "Quản lý chuồng trại, thiết bị",
+   "name_id": "Manajemen fasilitas"
+  },
+  {
+   "id": "record",
+   "name": "記録管理",
+   "name_en": "Record Management",
+   "name_vi": "Quản lý ghi chép",
+   "name_id": "Manajemen pencatatan"
+  },
+  {
+   "id": "shipping",
+   "name": "出荷管理",
+   "name_en": "Shipping Management",
+   "name_vi": "Quản lý xuất chuồng",
+   "name_id": "Manajemen pengiriman"
+  }
+ ],
+ "works": [],
+ "levelLabels_en": [
+  "Needs Coaching",
+  "Needs Improvement",
+  "Standard",
+  "Above Standard",
+  "Exemplary"
+ ],
+ "levelLabels_vi": [
+  "Cần hướng dẫn",
+  "Cần cải thiện",
+  "Đạt chuẩn",
+  "Vượt chuẩn",
+  "Gương mẫu"
+ ],
+ "levelLabels_id": [
+  "Perlu bimbingan",
+  "Perlu perbaikan",
+  "Standar",
+  "Di atas standar",
+  "Teladan"
+ ]
 }
