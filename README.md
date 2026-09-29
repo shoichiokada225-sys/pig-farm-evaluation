@@ -103,10 +103,14 @@
 - `work-criteria.json` — 共通観点5つ（丁寧さ/時間/器具/報告/観察。`{work}` が作業名に置換される）とカテゴリ定義
 - `works-data.json` — 44作業（大項目）と作業固有観点（各2〜3個、レベル1〜5基準文つき）
 
+### 表示文字列の多言語辞書
+- `barns-l10n.json` — 豚舎名・デフォルト項目名など「ja原文→{en,vi,id}」の辞書。`python build_html.py` で `l10nData` として index.html に埋め込まれる
+- 評価基準（`criteria-data.json` / `works-data.json`）の en/vi/id は各項目の `name_en` / `kanten_vi` / `levels_id` 等のフィールドとして正本JSON側に持つ
+
 ## ファイル構成（レイヤ）
 
 ```
-index.html      マークアップ＋埋め込みデータ（criteriaData / workCriteriaData）
+index.html      マークアップ＋埋め込みデータ（criteriaData / workCriteriaData / l10nData）
 styles.css      スタイル一式
 js/util.js      汎用ユーティリティ（toast/esc/sanitizeId）
 js/i18n.js      UI文言辞書（ja/en/vi/id）と t()
@@ -129,7 +133,7 @@ js/app.js       アプリ層：初期化・モード/豚舎/作業切替・入�
 - 評価項目の共有: 書き出し/読み込み（JSON、`_type:"pig_farm_eval_config"` 形式・サーバー不要）
 - 全データバックアップ: `_type:"pig_farm_eval_backup"` 形式。復元は評価をIDでマージ（既存優先）、項目は上書き
 - 自動保存: 300ms デバウンス。下書きはリロード・豚舎切替後に自動復元
-- テスト: `smoke.js`（Playwright、50項目）
+- テスト: `smoke.js`（Playwright、23シナリオ・約100項目。XSS/CSV/バックアップ復元/多言語/旧データ耐性の回帰を含む）
 
 ## テスト実行
 

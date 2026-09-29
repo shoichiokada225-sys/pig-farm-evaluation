@@ -448,6 +448,32 @@ function ok(name, cond) {
   await page.click('#modeBarn');
   await page.waitForTimeout(200);
 
+  console.log('[23] 編集開始：comments欠落・文字列スコアの旧レコードでも落ちない（回帰）');
+  await page.evaluate(() => localStorage.clear());
+  await page.evaluate(() => {
+    // normRec 導入前に取り込まれ localStorage に残っている旧形式レコードを再現
+    localStorage.setItem('pig_farm_evaluation_v1', JSON.stringify({ evaluations: [
+      { id: 'legacy-1', date: '2026-06-01', evaluator: '岡田', evaluatee: '旧形式太郎', scores: { item1: '4', item2: 3, item3: 'abc' }, overall: '旧所感' },
+    ] }));
+  });
+  await page.reload();
+  await page.waitForTimeout(200);
+  const errBefore23 = errors.length;
+  await page.click('.tabs button[data-pg="pgHi"]');
+  await page.waitForTimeout(150);
+  await page.click('.hi');
+  await page.waitForTimeout(200);
+  await page.click('#moBody .b3');   // 編集
+  await page.waitForTimeout(300);
+  ok('編集モードに入る（TypeErrorで止まらない）', await page.locator('#editBar.show').count() === 1);
+  ok('文字列スコア"4"が数値として復元される', await page.locator('.sb[data-id="item1"][data-s="4"].sel').count() === 1);
+  ok('数値スコア3も復元される', await page.locator('.sb[data-id="item2"][data-s="3"].sel').count() === 1);
+  ok('不正スコア"abc"は未選択のまま', await page.locator('.sb[data-id="item3"].sel').count() === 0);
+  ok('全体所感が復元される', await page.inputValue('#fOv') === '旧所感');
+  ok('コメント欄は空で初期化される', await page.evaluate(() => document.querySelector('textarea[data-cid="item1"]').value === ''));
+  ok('編集開始でページエラーが増えない', errors.length === errBefore23);
+  await page.evaluate(() => exitEdit());
+
   ok('ページエラーなし', errors.length === 0);
   if (errors.length) console.log(errors.join('\n'));
 

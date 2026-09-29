@@ -126,9 +126,12 @@ function startEdit(id){
   document.getElementById('fOv').value=rec.overall||'';
   document.querySelectorAll('.sb.sel,.crit-lv.sel').forEach(b=>b.classList.remove('sel'));
   document.querySelectorAll('.ec.scored').forEach(c=>c.classList.remove('scored'));
+  // 旧版で取り込んだレコードは comments が欠落・スコアが文字列のことがある（showDet と同じ防御）。
+  // ここで落ちると編集ボタンが無反応になるため、欠落は空扱い・スコアは 1〜5 の整数へ寄せる
+  const scs=rec.scores||{},cms=rec.comments||{};
   getItems().forEach(it=>{
-    const sc=rec.scores[it.id];if(sc)setScoreUI(it.id,sc);
-    const ta=document.querySelector('textarea[data-cid="'+it.id+'"]');if(ta)ta.value=rec.comments[it.id]||'';
+    const n=Number(scs[it.id]);if(Number.isInteger(n)&&n>=1&&n<=5)setScoreUI(it.id,n);
+    const ta=document.querySelector('textarea[data-cid="'+it.id+'"]');if(ta)ta.value=cms[it.id]==null?'':String(cms[it.id]);
   });
   document.getElementById('editBar').classList.add('show');
   document.getElementById('btnSave').textContent=t('btnUpdate');
