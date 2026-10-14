@@ -174,14 +174,7 @@ function restoreDraft(){
 /* ==============================================================
    タブ
    ============================================================== */
-let cfgUnlocked=false;
 function swTab(btn){
-  // 設定タブはパスワード認証が必要
-  if(btn.dataset.pg==='pgCfg'&&!cfgUnlocked){
-    const pw=prompt(lang==='ja'?'設定画面のパスワードを入力してください':'Enter password for settings:');
-    if(!pw||pw.toUpperCase()!=='OOIRI'){toast(lang==='ja'?'パスワードが違います':'Wrong password',1);return}
-    cfgUnlocked=true;
-  }
   document.querySelectorAll('.tabs button').forEach(b=>{b.classList.remove('on');b.removeAttribute('aria-current')});
   btn.classList.add('on');btn.setAttribute('aria-current','page');
   document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));
