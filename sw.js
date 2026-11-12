@@ -1,9 +1,9 @@
 /* HSS 評価システム Service Worker
    ネットワーク優先＋キャッシュフォールバック：
    オンライン時は常に最新を取得しつつキャッシュを更新、圏外の豚舎でもオフラインで起動できる */
-const CACHE = 'hss-eval-v6';
+const CACHE = 'hss-eval-v7';
 const ASSETS = [
-  './', './index.html', './styles.css',
+  './', './index.html', './legacy.html', './styles.css',
   './js/util.js', './js/i18n.js', './js/data.js', './js/store.js', './js/ui.js', './js/app.js',
   './chart.umd.min.js', './manifest.json', './icon-192.png', './icon-512.png',
 ];

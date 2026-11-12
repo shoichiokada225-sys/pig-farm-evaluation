@@ -1,7 +1,7 @@
 /* HSS評価システム 改修スモークテスト（playwright は farm-shift-app から借用） */
 const { chromium } = require('C:/Users/so/farm-shift-app/node_modules/playwright');
 
-const URL = 'file:///C:/Users/so/pig-farm-evaluation/index.html';
+const URL = 'file:///C:/Users/so/pig-farm-evaluation/legacy.html';
 let pass = 0, fail = 0;
 function ok(name, cond) {
   if (cond) { pass++; console.log('  OK ' + name); }
