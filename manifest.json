@@ -16,13 +16,13 @@
     {
       "name": "評価履歴を見る",
       "short_name": "履歴",
-      "url": "./#pgHi",
+      "url": "./legacy.html#pgHi",
       "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
     },
     {
       "name": "グラフを見る",
       "short_name": "グラフ",
-      "url": "./#pgCh",
+      "url": "./legacy.html#pgCh",
       "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
     }
   ]
